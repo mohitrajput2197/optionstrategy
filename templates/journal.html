@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Trade Journal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { background: #171f2c; color: #fff; font-family: 'Inter', sans-serif; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 20px; background: #2a384e; border-radius: 15px; }
+        h1 { text-align: center; color: #7adcf4; }
+        .journal-entry { background: #3a485e; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .journal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #4a586e; padding-bottom: 10px; margin-bottom: 10px; }
+        .journal-header h3 { margin: 0; }
+        textarea, input { width: 98%; background: #2a384e; border: 1px solid #4a586e; color: #fff; padding: 10px; border-radius: 5px; margin-top: 10px;}
+        button { cursor: pointer; border: none; padding: 8px 15px; border-radius: 5px; font-weight: 600; margin-left: 5px; }
+        .save-btn { background: #007bff; color: white; }
+        .delete-btn { background: #dc3545; color: white; } /* NEW: Style for delete button */
+        a { color: #7adcf4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ username }}'s Trade Journal</h1>
+        <p style="text-align: center;"><a href="/">← Back to Main Dashboard</a></p>
+
+        {% if entries %}
+            {% for entry in entries %}
+                <div class="journal-entry" id="entry-{{ entry.id }}">
+                    <div class="journal-header">
+                        {% set details = entry.strategy_details_json|fromjson %}
+                        <h3>{{ details.script[0] }} Strategy</h3>
+                        <span>Generated on: {{ entry.entry_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    <p><strong>Details:</strong> Pattern: {{ details.buySellPattern[0] }}, Mode: {{ details.mode[0] }}</p>
+                    <div>
+                        <label for="notes-{{ entry.id }}">Notes:</label>
+                        <textarea id="notes-{{ entry.id }}" rows="3">{{ entry.notes or '' }}</textarea>
+                    </div>
+                    <div>
+                        <label for="pnl-{{ entry.id }}">Final P/L (₹):</label>
+                        <input type="number" step="0.01" id="pnl-{{ entry.id }}" value="{{ entry.final_pnl or '' }}">
+                    </div>
+                    <div style="text-align: right; margin-top: 10px;">
+                        <button class="save-btn" onclick="updateEntry({{ entry.id }})">Save Notes</button>
+                        <button class="delete-btn" onclick="deleteEntry({{ entry.id }})">Delete</button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align:center;">You have no journal entries yet. Generate a CSV on the dashboard to create one automatically!</p>
+        {% endif %}
+    </div>
+<script>
+    function updateEntry(entryId) {
+        const notes = document.getElementById(`notes-${entryId}`).value;
+        const pnl = document.getElementById(`pnl-${entryId}`).value;
+        fetch('/update_journal_entry', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({id: entryId, notes: notes, pnl: pnl})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') { alert('Journal entry updated!'); } 
+            else { alert('Error updating entry.'); }
+        });
+    }
+
+    // --- NEW: JavaScript function for Manual Deletion ---
+    function deleteEntry(entryId) {
+        // Ask for confirmation before deleting
+        if (confirm('Are you sure you want to permanently delete this journal entry?')) {
+            fetch('/journal/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id: entryId})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // If successful, remove the entry from the page instantly
+                    const entryDiv = document.getElementById(`entry-${entryId}`);
+                    if (entryDiv) {
+                        entryDiv.remove();
+                    }
+                    alert(data.message);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        }
+    }
+</script>
+</body>
+</html>

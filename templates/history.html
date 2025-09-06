@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Saved Strategies</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { background: #171f2c; color: #fff; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 40px auto; padding: 20px 40px; background: #2a384e; border-radius: 15px; }
+        h1 { text-align: center; color: #7adcf4; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #4a586e; }
+        th { color: #7adcf4; font-size: 1.1em; }
+        tr:hover { background-color: #3a485e; }
+        button { cursor: pointer; padding: 8px 15px; border: none; border-radius: 5px; font-weight: 600; transition: all 0.2s; }
+        button:hover { transform: translateY(-2px); }
+        .load-btn { background: #007bff; color: #fff; }
+        .delete-btn { background: #dc3545; color: #fff; }
+        a { color: #7adcf4; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ username }}'s Saved Strategies</h1>
+        <p style="text-align: center;"><a href="/">← Back to Main Dashboard</a></p>
+        {% if strategies %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Strategy Name</th>
+                        <th>Script</th>
+                        <th>Date Saved</th>
+                        <th style="text-align:center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for strategy in strategies %}
+                    <tr id="strategy-row-{{ strategy.id }}">
+                        <td>{{ strategy.strategy_name }}</td>
+                        <td>{{ strategy.script }}</td>
+                        <td>{{ strategy.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td style="text-align:center; display:flex; gap: 10px; justify-content: center;">
+                            <button class="load-btn" data-id="{{ strategy.id }}">Load</button>
+                            <button class="delete-btn" data-id="{{ strategy.id }}">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="text-align:center; margin-top: 30px;">You have no saved strategies yet. Go back to the dashboard to create and save one!</p>
+        {% endif %}
+    </div>
+    <script>
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('load-btn')) {
+            const strategyId = event.target.dataset.id;
+            fetch(`/load_strategy/${strategyId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'error') { alert(data.message); return; }
+                    localStorage.setItem('strategyToLoad', JSON.stringify(data));
+                    window.location.href = '/';
+                });
+        }
+        if (event.target.classList.contains('delete-btn')) {
+            const strategyId = event.target.dataset.id;
+            if (confirm('Are you sure you want to delete this strategy?')) {
+                fetch('/delete_strategy', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id: strategyId })
+                }).then(res => res.json()).then(result => {
+                    if (result.status === 'success') {
+                        document.getElementById(`strategy-row-${strategyId}`).remove();
+                    }
+                    alert(result.message);
+                });
+            }
+        }
+    });
+    </script>
+</body>
+</html>

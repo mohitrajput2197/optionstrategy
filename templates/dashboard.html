@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Option Strategy Dashboard</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        body { margin: 0; min-height: 100vh; font-family: 'Inter', Arial, sans-serif; background: #171f2c; overflow-x: hidden; }
+        .chart-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; background: #171f2c; }
+        .chart-bg::after { content: ""; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; opacity: 0.8; background: linear-gradient(120deg,#365072b0 10%,#7adcf4aa 90%,#171f2c 100%), url("data:image/svg+xml,%3Csvg width='1100' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.34'%3E%3Cpolyline points='50,560 110,340 190,410 270,320 350,170 470,350 690,190 890,450 1040,390' style='fill:none;stroke:%23ffa400;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;'/%3E%3Cpolyline points='100,420 200,540 320,350 520,200 900,220' style='fill:none;stroke:%2350e07c;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;'/%3E%3C/g%3E%3C/svg%3E"); background-repeat: no-repeat; background-size: cover; background-position: center center; pointer-events: none; }
+        .logo-rajput-animated { position: fixed; left: 15px; top: 15px; z-index: 100; width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; background: rgba(34,34,34,0.47); border-radius: 20px; box-shadow: 0 4px 20px #67d1ff79,0 0 0 3px #67d1ff31; padding: 9px; pointer-events: none; animation: pulse-glow 2.6s infinite; }
+        .logo-rajput-animated img { width: 95%; height: 95%; object-fit: contain; opacity: 1; background: transparent; border-radius: 14px; box-shadow: 0 0 14px #67d1ffb7, 0 1px 22px #d6f5ffb7, 0 0 0 #67d1ff; animation: logo-glow 2.6s infinite; }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 4px 20px #67d1ff79,0 0 0 3px #67d1ff31;} 50% { box-shadow: 0 2px 38px #67d1ffdd,0 0 0 7px #9ae9ff45;} }
+        @keyframes logo-glow { 0%, 100% { box-shadow: 0 0 10px #67d1ffb7, 0 1px 16px #d6f5ffb7; } 50% { box-shadow: 0 0 48px #67d1ff, 0 2px 22px #c0eaffcc; } }
+        .ticker-bar { width: 100vw; overflow: hidden; background: #f7fcff; box-shadow: 0 3px 12px #64d4e535; border-top: 1.5px solid #dde8ee; border-bottom: 1.5px solid #dde8ee; position: relative; z-index: 3; height: 42px; }
+        .ticker-track { display: flex; align-items: center; gap: 24px; height: 42px; animation: ticker-scroll 40s linear infinite; }
+        .ticker-item { font-family: 'Inter', Arial, sans-serif; color: #184175; font-size: 1.04rem; font-weight: 600; padding: 0 15px; border-right: 2px solid #e3f3f7; display: flex; align-items: center; min-width: 220px; white-space: nowrap; flex-shrink: 0; }
+        .ticker-item:last-child{border:none;} .up{color:#0aa869;font-weight:700;} .down{color:#e9176e;font-weight:700;} .idx-symbol{color:#227773;font-weight:700;font-size:1em;margin-right:8px;}
+        @keyframes ticker-scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+        .container { max-width: 1200px; margin: 36px auto; background: #ffffff1c; border-radius: 24px; box-shadow: 0 8px 38px #0000004d; padding: 24px 36px; position: relative; z-index: 3; backdrop-filter: blur(10px); }
+        h1.welcome-heading { color: #fff; text-align: left; margin-bottom: 1.5rem; }
+        h1.welcome-heading span { font-weight: 800; color: #7adcf4; text-transform: capitalize; }
+        h2 { color: #7adcf4; border-bottom: 1px solid #7adcf433; padding-bottom: 10px; margin-top: 0; margin-bottom: 25px; font-size: 1.8em;}
+        #live-clock-container { text-align: left; color: #a2dff7; font-size: 1.1em; font-weight: 600; margin-top: -1.5rem; margin-bottom: 2rem; text-shadow: 0 0 5px rgba(0,0,0,0.3); }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        .row { display: flex; gap: 22px; margin-bottom: 18px; }
+        .col { flex: 1; }
+        .input-group { position: relative; margin-bottom: 24px; }
+        .input-field { width: 100%; box-sizing: border-box; font-size: 1.06rem; border: 1.45px solid #7adcf488; border-radius: 8px; padding: 14px; background: #f6fbfc22; color: #fff; outline: none; }
+        .input-label { position: absolute; top: 14px; left: 15px; color: #7adcf4aa; pointer-events: none; transition: all 0.2s ease-out; }
+        .input-field:focus + .input-label, .input-field:not(:placeholder-shown) + .input-label { top: -8px; left: 12px; font-size: 0.8em; color: #7adcf4; background: #283a54; padding: 0 5px; }
+        .expiry-label-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .expiry-label-group label { margin-bottom: 0; color: #a2dff7; font-weight: 600; }
+        .expiry-buttons button { font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+        button { cursor: pointer; border: none; font-family: inherit; font-weight: 600; transition: all 0.2s; }
+        button:hover { transform: translateY(-2px); }
+        .add-btn { background: #007bff; color: white; font-size: 1rem; padding: 10px 25px; border-radius: 5px; }
+        .remove-btn { background: #ff5c5c; color: white; font-size: 0.9rem; padding: 8px 15px; border-radius: 6px; }
+        .pair-row { border-bottom: 1px solid #7adcf433; padding-bottom: 18px; margin-bottom: 18px; }
+        .admin-link { background: #e74c3c; color: white; padding: 9px 15px; border-radius: 7px; font-weight: 700; text-decoration: none; }
+        .insight-panel { background: #e6f7ff22; border-left: 5px solid #1890ff; padding: 15px 20px; border-radius: 5px; color: #e0faff; }
+        .insight-panel h3 { color: #7adcf4; margin-top: 0; }
+        .actions { text-align: center; }
+        .actions button { font-size: 1.1rem; }
+        .loader { width: 25px; height: 25px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; display: none; position: absolute; left: 50%; top: 50%; margin: -12.5px 0 0 -12.5px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        button.loading { background: #7f8c8d; cursor: not-allowed; transform: none; }
+
+        /* --- FINAL FIX for Dropdown Colors --- */
+        select.input-field {
+            color: #e0faff;
+            /* This new property hints to the browser to use dark UI for its own controls like the dropdown */
+            color-scheme: dark;
+        }
+        select.input-field option {
+            /* This is our best effort to style the options, but it may not work in all browsers */
+            background: #283a54;
+            color: #e0faff;
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-bg"></div>
+    <div class="logo-rajput-animated"><img src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/30a21fb5-200c-45ef-93b8-f5fdc17c0bd3.png" alt="Logo"></div>
+    <div class="ticker-bar" id="ticker"><div class="ticker-track"></div></div>
+    <div class="container">
+        <h1 class="welcome-heading">Welcome, <span>{{ username }}</span>!</h1>
+        <div id="live-clock-container"></div>
+        <div class="dashboard-grid">
+            <section class="form-section">
+                <h2>Strategy Builder</h2>
+                <form id="strategy-form" method="post" action="/generate">
+                    <div id="ratio-gap-container"></div>
+                    <div style="text-align:center; margin-top: -10px; margin-bottom: 20px;"><button type="button" class="add-btn" onclick="addPair()">+ Add Ratio/Gap Pair</button></div>
+                    <div class="row">
+                        <div class="col input-group">
+                            <select id="script" name="script" class="input-field">
+                                <option value="NIFTY">NIFTY</option>
+                                <option value="BANKNIFTY">BANKNIFTY</option>
+                                <option value="SENSEX">SENSEX</option>
+                                <option value="FINNIFTY">FINNIFTY</option>
+                                <option value="MIDCAP">MIDCAP</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <div class="expiry-label-group">
+                                <label for="expiry">Expiry</label>
+                                <span class="expiry-buttons">
+                                    <button type="button" onclick="setSmartExpiry('weekly')">Weekly</button>
+                                    <button type="button" onclick="setSmartExpiry('monthly')">Monthly</button>
+                                </span>
+                            </div>
+                            <input type="date" id="expiry" name="expiry" class="input-field" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col input-group"><input type="number" id="firstStrikeCE" name="firstStrikeCE" value="24100" class="input-field" placeholder=" " required><label for="firstStrikeCE" class="input-label">First Strike CE</label></div>
+                        <div class="col input-group"><input type="number" id="firstStrikePE" name="firstStrikePE" value="25400" class="input-field" placeholder=" " required><label for="firstStrikePE" class="input-label">First Strike PE</label></div>
+                    </div>
+                    <div class="row">
+                        <div class="col input-group"><input type="number" id="strikeStep" name="strikeStep" value="50" class="input-field" placeholder=" " required><label for="strikeStep" class="input-label">Strike Step</label></div>
+                        <div class="col input-group"><input type="number" id="totStrikes" name="totStrikes" value="10" class="input-field" placeholder=" " required><label for="totStrikes" class="input-label">Total Strike Rows</label></div>
+                    </div>
+                    <div class="row">
+                        <div class="col input-group"><input type="text" id="buySellPattern" name="buySellPattern" value="S.B.S" class="input-field" placeholder=" " required style="text-transform: uppercase;"><label for="buySellPattern" class="input-label">Buy/Sell Pattern</label></div>
+                        <div class="col input-group"><input type="text" id="fileName" name="fileName" class="input-field" placeholder=" " readonly><label for="fileName" class="input-label">File Name</label></div>
+                    </div>
+                    <div class="row">
+                        <div class="col input-group"><select id="mode" name="mode" class="input-field"><option value="8184">8184</option><option value="7155">7155</option><option value="IOC">IOC</option></select></div>
+                        <div class="col"></div>
+                    </div>
+                    <div class="actions">
+                        <div class="input-group" style="display:flex; gap: 10px; align-items: center;"><input type="text" id="strategyName" placeholder=" " class="input-field"><label for="strategyName" class="input-label">Strategy Name to Save</label><button type="button" id="saveStrategyBtn" style="padding: 13px 25px; border-radius: 8px;">Save</button></div>
+                        <div style="position: relative;"><button type="submit" id="generate-btn" style="width: 100%; border-radius: 8px; font-size: 1.2rem; padding: 14px;">Download CSV</button><div class="loader"></div></div>
+                    </div>
+                </form>
+            </section>
+            <section class="analysis-section">
+                <h2>Analysis & Info</h2>
+                <div class="insight-panel">
+                    <h3>Today's Market Insight</h3>
+                    <p id="insight-text">Loading insight...</p>
+                </div>
+            </section>
+        </div>
+        <div style="margin-top:2em; text-align:center; display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;">
+            <a href="/journal" class="admin-link" style="background:#28a745; text-decoration: none;">My Trade Journal</a>
+            <a href="/history" class="admin-link" style="background:#007bff; text-decoration: none;">My Saved Strategies</a>
+            <form action="/logout" method="post" style="margin:0;"><button type="submit" style="padding:9px 25px;border-radius:7px;">Logout</button></form>
+            {% if is_admin %}<a href="/admin" class="admin-link">Admin Panel</a>{% endif %}
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        // --- All Variables ---
+        const container = document.getElementById('ratio-gap-container');
+        const strategyForm = document.getElementById('strategy-form');
+        const scriptSelect = document.getElementById('script');
+        const buySellPatternInput = document.getElementById('buySellPattern');
+        const generateBtn = document.getElementById('generate-btn');
+        const loader = document.querySelector('.actions .loader');
+
+        // --- All Functions (Your Main Logic) ---
+        function showToast(message, isError = false) {
+            Toastify({ text: message, duration: 3000, close: true, gravity: "top", position: "right", style: { background: isError ? "#E74C3C" : "#13a561" } }).showToast();
+        }
+
+        function updateFileName() {
+            const script = scriptSelect.value;
+            const firstRatioInput = document.querySelector('input[name="ratios"]');
+            const ratio = firstRatioInput ? firstRatioInput.value.replace(/[\s.]/g, '') : 'strategy';
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            const finalName = `${script}_${ratio}_${dateStr}.csv`;
+            document.getElementById('fileName').value = finalName;
+        }
+
+        function handleInputFiltering(event) {
+            const input = event.target;
+            let originalValue = input.value, cleanedValue = originalValue;
+            if (input.classList.contains('validate-ratio')) { cleanedValue = originalValue.replace(/[^0-9.]/g, ''); }
+            if (input.classList.contains('validate-gaps')) { cleanedValue = originalValue.replace(/[^0-9,]/g, ''); }
+            if (cleanedValue !== originalValue) { input.value = cleanedValue; }
+        }
+
+        function attachValidationListeners() {
+            document.querySelectorAll('.validate-ratio, .validate-gaps').forEach(input => {
+                input.removeEventListener('input', handleInputFiltering);
+                input.addEventListener('input', handleInputFiltering);
+            });
+            document.querySelectorAll('input[name="ratios"]').forEach(input => {
+                input.removeEventListener('input', updateFileName);
+                input.addEventListener('input', updateFileName);
+            });
+        }
+
+        function addPair(initialRatio = '', initialGaps = '') {
+            const pairDiv = document.createElement('div');
+            pairDiv.className = 'row pair-row';
+            pairDiv.innerHTML = `
+                <div class="col input-group"><input type="text" name="ratios" class="input-field validate-ratio" placeholder=" " required><label class="input-label">Ratio (e.g., 1.2 or 1.2.1)</label></div>
+                <div class="col input-group"><input type="text" name="gaps" class="input-field validate-gaps" placeholder=" " required><label class="input-label">Gaps (e.g., 300, 250)</label></div>
+                <div class="col" style="flex:0 0 auto; align-self:center;"><button type="button" class="remove-btn" onclick="removePair(this)">Remove</button></div>`;
+            container.appendChild(pairDiv);
+            pairDiv.style.animation = 'fadeInDown 0.4s ease-out';
+            pairDiv.querySelector('input[name="ratios"]').value = initialRatio;
+            pairDiv.querySelector('input[name="gaps"]').value = initialGaps;
+            attachValidationListeners();
+            updateFileName();
+        }
+
+        function removePair(button) {
+          if (container.children.length > 1) {
+              const pairRow = button.closest('.pair-row');
+              pairRow.style.animation = 'fadeInDown 0.4s ease-out reverse';
+              setTimeout(() => { pairRow.remove(); updateFileName(); }, 400);
+          } else {
+              showToast("You must have at least one Ratio/Gap pair.", true);
+          }
+        }
+
+        function setExpiryToday() { document.getElementById('expiry').value = new Date().toISOString().split('T')[0]; }
+
+        function updateStrikeFields() {
+          const script = scriptSelect.value;
+          let ce = 24100, pe = 25400;
+          if (script === "BANKNIFTY") { ce = 55300; pe = 55400; }
+          else if (script === "SENSEX") { ce = 80600; pe = 80500; }
+          document.getElementById('firstStrikeCE').value = ce;
+          document.getElementById('firstStrikePE').value = pe;
+          updateFileName();
+        }
+
+        function formatDate(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+        function findNextDayOfWeek(dayIndex, date = new Date()) {
+            const resultDate = new Date(date.getTime());
+            let daysToAdd = (dayIndex - date.getDay() + 7) % 7;
+            if (daysToAdd === 0) { daysToAdd = 7; }
+            resultDate.setDate(date.getDate() + daysToAdd);
+            return resultDate;
+        }
+        function findLastDayOfMonth(dayIndex, date = new Date()) {
+            let year = date.getFullYear(), month = date.getMonth();
+            let lastDayOfMonth = new Date(year, month + 1, 0);
+            let dayOfWeek = lastDayOfMonth.getDay();
+            let daysToSubtract = (dayOfWeek - dayIndex + 7) % 7;
+            let resultDate = new Date(year, month, lastDayOfMonth.getDate() - daysToSubtract);
+            if (date > resultDate) {
+                let nextMonthDate = new Date(year, month + 1, 15);
+                return findLastDayOfMonth(dayIndex, nextMonthDate);
+            }
+            return resultDate;
+        }
+        function setSmartExpiry(type) {
+            const script = scriptSelect.value;
+            const expiryInput = document.getElementById('expiry');
+            let expiryDate;
+            if (type === 'weekly') {
+                if (script === 'NIFTY') { expiryDate = findNextDayOfWeek(2); }
+                else if (script === 'SENSEX') { expiryDate = findNextDayOfWeek(4); }
+                else { showToast(`Weekly expiry is not available for ${script}.`, true); return; }
+            } else if (type === 'monthly') {
+                if (['BANKNIFTY', 'MIDCAP', 'FINNIFTY'].includes(script)) {
+                    expiryDate = findLastDayOfMonth(2);
+                } else { showToast(`Monthly expiry is not available for ${script}.`, true); return; }
+            }
+            if (expiryDate) { expiryInput.value = formatDate(expiryDate); }
+        }
+
+        function updateTicker() {
+            const tickerTrack = document.querySelector('.ticker-track');
+            if (!tickerTrack) return;
+            fetch('/ticker_data').then(res => res.json()).then(apiResponse => {
+                if (!apiResponse.data || apiResponse.data.length === 0) return;
+                tickerTrack.innerHTML = '';
+                const allItems = [...apiResponse.data, ...apiResponse.data];
+                allItems.forEach(item => {
+                    const changeClass = item.change >= 0 ? 'up' : 'down';
+                    const sign = item.change >= 0 ? '+' : '';
+                    tickerTrack.innerHTML += `<div class="ticker-item"><span class="idx-symbol">${item.symbol}</span><span>${item.value.toFixed(2)}</span><span class="${changeClass}" style="margin-left: 8px;">${sign}${item.change.toFixed(2)} (${item.percent.toFixed(2)}%)</span></div>`;
+                });
+            }).catch(error => console.error("Could not update ticker:", error));
+        }
+
+        function fetchMarketInsight() {
+            const insightElement = document.getElementById('insight-text');
+            if (!insightElement) return;
+            fetch('/market_insight').then(res => res.json()).then(data => {
+                insightElement.textContent = data.insight;
+            }).catch(err => { insightElement.textContent = 'Could not load market insight.'; });
+        }
+
+        function updateClock() {
+            const clockContainer = document.getElementById('live-clock-container');
+            if (!clockContainer) return;
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            clockContainer.innerHTML = `${now.toLocaleDateString('en-US', options)} &nbsp;|&nbsp; ${now.toLocaleTimeString('en-US')}`;
+        }
+
+        // --- Event Listeners and Startup ---
+        buySellPatternInput.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+        scriptSelect.addEventListener('change', updateStrikeFields);
+
+        strategyForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            loader.style.display = 'block';
+            generateBtn.classList.add('loading');
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+
+            fetch('/generate', { method: 'POST', body: new FormData(strategyForm) })
+            .then(response => {
+                if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Server error') }); }
+                return response.blob();
+            })
+            .then(blob => {
+                const a = document.createElement('a');
+                a.href = window.URL.createObjectURL(blob);
+                a.download = document.getElementById('fileName').value;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(a.href);
+                document.body.removeChild(a);
+            }).catch(err => showToast('Error generating file: ' + err.message, true))
+            .finally(() => {
+                loader.style.display = 'none';
+                generateBtn.classList.remove('loading');
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Download CSV';
+            });
+        });
+
+        document.getElementById('saveStrategyBtn').addEventListener('click', () => {
+            const btn = document.getElementById('saveStrategyBtn');
+            const originalText = "Save";
+            const strategyName = document.getElementById('strategyName').value;
+            if (!strategyName.trim()) { showToast('Please enter a name for the strategy.', true); return; }
+            const ratios = Array.from(document.querySelectorAll('input[name="ratios"]')).map(i => i.value);
+            const gaps = Array.from(document.querySelectorAll('input[name="gaps"]')).map(i => i.value);
+            const strategyData = {
+                strategy_name: strategyName, script: document.getElementById('script').value,
+                expiry: document.getElementById('expiry').value, firstStrikeCE: document.getElementById('firstStrikeCE').value,
+                firstStrikePE: document.getElementById('firstStrikePE').value, strikeStep: document.getElementById('strikeStep').value,
+                totStrikes: document.getElementById('totStrikes').value, buySellPattern: document.getElementById('buySellPattern').value,
+                mode: document.getElementById('mode').value,
+                ratios_gaps: ratios.map((r, i) => ({ ratio: r, gaps: gaps[i] }))
+            };
+            fetch('/save_strategy', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(strategyData) })
+            .then(res => res.json()).then(result => {
+                showToast(result.message);
+                btn.innerHTML = `✔ Saved!`;
+                setTimeout(() => { btn.innerHTML = originalText; }, 2500);
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const dataToLoad = localStorage.getItem('strategyToLoad');
+            if (dataToLoad) {
+                try {
+                    const data = JSON.parse(dataToLoad);
+                    document.getElementById('script').value = data.script;
+                    document.getElementById('expiry').value = data.expiry;
+                    document.getElementById('firstStrikeCE').value = data.firstStrikeCE;
+                    document.getElementById('firstStrikePE').value = data.firstStrikePE;
+                    document.getElementById('strikeStep').value = data.strikeStep;
+                    document.getElementById('totStrikes').value = data.totStrikes;
+                    document.getElementById('buySellPattern').value = data.buySellPattern;
+                    document.getElementById('mode').value = data.mode;
+                    container.innerHTML = '';
+                    data.ratios_gaps.forEach(pair => addPair(pair.ratio, pair.gaps));
+                    showToast('Strategy loaded successfully!');
+                } catch (e) { console.error("Failed to load strategy:", e); }
+                finally { localStorage.removeItem('strategyToLoad'); }
+            }
+        });
+
+        window.onload = function() {
+            setExpiryToday();
+            updateStrikeFields();
+            addPair();
+            updateTicker();
+            fetchMarketInsight();
+            updateClock();
+            setInterval(updateTicker, 120000);
+            setInterval(updateClock, 1000);
+        };
+    </script>
+</body>
+</html>
