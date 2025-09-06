@@ -1,0 +1,14 @@
+Flask
+Flask-Admin
+Flask-SQLAlchemy
+SQLAlchemy
+Werkzeug
+Jinja2
+WTForms
+yfinance
+pandas
+requests
+python-dotenv
+Flask-Babel
+gunicorn
+psycopg2-binary
