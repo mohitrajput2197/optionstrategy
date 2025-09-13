@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, send_file, session, redirect, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_admin import Admin,AdminIndexView
+from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from wtforms.fields import PasswordField
 from flask_babel import Babel
