@@ -2,6 +2,7 @@
 import os
 import io
 import json
+import threading
 import yfinance as yf
 from dotenv import load_dotenv
 from datetime import datetime
@@ -19,9 +20,14 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "a-default-secret-key-for-development")
 INVITATION_CODE = os.environ.get("INVITATION_CODE", "BIJNOR24")
 
+# --- Database Configuration (Works on Heroku and Local) ---
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith("postgres://"):
+     # Heroku's URL ko SQLAlchemy ke liye theek karna
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
 basedir = os.path.abspath(os.path.dirname(__file__))
-db_path = os.path.join(basedir, 'users.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
+   # Agar Heroku par hai, to PostgreSQL use karega, warna local computer par SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///' + os.path.join(basedir, 'users.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['BABEL_DEFAULT_LOCALE'] = 'en'
 babel = Babel(app)
