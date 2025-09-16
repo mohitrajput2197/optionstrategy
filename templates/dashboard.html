@@ -87,15 +87,15 @@
                     </div>
                     <div class="row">
                         <div class="col input-group"><input type="number" id="strikeStep" name="strikeStep" value="50" class="input-field" placeholder=" " required><label for="strikeStep" class="input-label">Strike Step</label></div>
-                        <div class="col input-group"><input type="number" id="totStrikesCE" name="totStrikesCE" value="10" class="input-field" placeholder=" " required><label for="totStrikesCE" class="input-label">Total CE Rows</label></div>
+                        <div class="col input-group"><input type="number" id="totStrikes" name="totStrikes" value="10" class="input-field" placeholder=" " required><label for="totStrikes" class="input-label">Total Strike Rows</label></div>
                     </div>
                     <div class="row">
-                         <div class="col input-group"><input type="number" id="totStrikesPE" name="totStrikesPE" value="10" class="input-field" placeholder=" " required><label for="totStrikesPE" class="input-label">Total PE Rows</label></div>
                         <div class="col input-group"><input type="text" id="buySellPattern" name="buySellPattern" value="S.B.S" class="input-field" placeholder=" " required style="text-transform: uppercase;"><label for="buySellPattern" class="input-label">Buy/Sell Pattern</label></div>
+                        <div class="col input-group"><input type="text" id="fileName" name="fileName" class="input-field" placeholder=" " readonly><label for="fileName" class="input-label">File Name</label></div>
                     </div>
                     <div class="row">
-                        <div class="col input-group"><input type="text" id="fileName" name="fileName" class="input-field" placeholder=" " readonly><label for="fileName" class="input-label">File Name</label></div>
                         <div class="col input-group"><select id="mode" name="mode" class="input-field"><option value="8184">8184</option><option value="7155">7155</option><option value="IOC">IOC</option></select></div>
+                        <div class="col"></div>
                     </div>
                     
                     <label class="advanced-accordion-label"><input type="checkbox" id="toggleAdvanced" name="use_advanced_csv">Use Advanced CSV Parameters</label>
@@ -132,7 +132,7 @@
         </div>
     </div>
     
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"></script>
     <script>
         // --- All Variables ---
         const container = document.getElementById('ratio-gap-container');
@@ -167,7 +167,8 @@
                 </div>
                 <div class="col" style="flex:0 0 auto; align-self:center;"><button type="button" class="remove-btn" onclick="removePair(this)">Remove</button></div>`;
             container.appendChild(pairDiv); pairDiv.style.animation = 'fadeInDown 0.4s ease-out';
-            pairDiv.querySelector('input[name="ratios"]').value = initialRatio; pairDiv.querySelector('input[name="gaps"]').value = initialGaps;
+            pairDiv.querySelector('input[name="ratios"]').value = initialRatio;
+            pairDiv.querySelector('input[name="gaps"]').value = initialGaps;
             attachValidationListeners(); updateFileName();
         }
         function removePair(button) { if (container.children.length > 1) { const pairRow = button.closest('.pair-row'); pairRow.style.animation = 'fadeInDown 0.4s ease-out reverse'; setTimeout(() => { pairRow.remove(); updateFileName(); }, 400); } else { showToast("You must have at least one Ratio/Gap pair.", true); } }
