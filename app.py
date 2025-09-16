@@ -1,3 +1,4 @@
+
 import os
 import io
 import json
@@ -113,7 +114,7 @@ def generate():
     script=request.form.get('script','NIFTY').upper(); expiry_raw=request.form.get('expiry','')
     firstStrikeCE=get_int_from_form('firstStrikeCE',24100); firstStrikePE=get_int_from_form('firstStrikePE',25400)
     strikeStep=get_int_from_form('strikeStep',50)
-    totStrikesCE = get_int_from_form('totStrikesCE', 10); totStrikesPE = get_int_from_form('totStrikesPE', 10)
+    totStrikes = get_int_from_form('totStrikes', 10)
     buySellPattern=request.form.get('buySellPattern','S.B.S').upper()
     fileName=request.form.get('fileName')or f"{script}-strategy.csv";mode=request.form.get('mode','8184')
     
@@ -151,41 +152,49 @@ def generate():
     for pair in parsed_pairs:
         ratio_str = pair['ratio']; gap_str = pair['gaps']; use_individual = pair['individual']
         if not ratio_str.strip() or not gap_str.strip(): continue
+
+        all_gaps_to_iterate = [int(g.strip()) for g in gap_str.split(',') if g.strip().isdigit()]
+        if not all_gaps_to_iterate: continue
+
         legCount = len(ratio_str.split('.')); stgCode = getStgCode(ratio_str, mode); current_lotSize = "|".join([str(lot_per_script)] * legCount) if mode == "7155" else str(lot_per_script)
         buySellStr = '.'.join([baseParts[i % baseCount] for i in range(legCount)])
         
-        for i in range(totStrikesCE):
-            ce_prices = []; current_ce_strike = firstStrikeCE + (i * strikeStep)
-            if use_individual:
-                leg_gaps = [int(g.strip()) for g in gap_str.split(',') if g.strip().isdigit()]
-                ce_prices.append(current_ce_strike)
-                for j in range(legCount - 1):
-                    gap_to_add = leg_gaps[j] if j < len(leg_gaps) else leg_gaps[-1]
-                    current_ce_strike += gap_to_add; ce_prices.append(current_ce_strike)
-            else:
-                single_gap = int(gap_str.split(',')[0].strip()) if ',' in gap_str or gap_str.strip().isdigit() else 0
-                for j in range(legCount): ce_prices.append(current_ce_strike + (j * single_gap))
-            row_ce = ['0'] * len(headers); row_ce[0] = str(pid); pid += 1; row_ce[5]=str(stgCode); row_ce[6]=csv_script; row_ce[7]=current_lotSize; row_ce[8]='-'.join(['OPTIDX']*legCount); row_ce[9]='|'.join([expiry]*legCount); row_ce[10]='|'.join(['CE']*legCount); row_ce[11]='|'.join(map(str, ce_prices)); row_ce[12]=ratio_str; row_ce[13]=buySellStr; row_ce[24]=gap_str
-            row_ce[16]=adv_bsoq; row_ce[17]=adv_bqty; row_ce[18]=adv_bprice; row_ce[19]=adv_sprice; row_ce[20]=adv_sqty; row_ce[21]=adv_ssoq
-            row_ce[15]='1'; row_ce[25]='10'; row_ce[26]='2'; row_ce[27]='2'; row_ce[29]='5'; row_ce[30]='50' if mode=="IOC" else '200'; row_ce[31]='2'; row_ce[32]='1'; row_ce[33]='FALSE' if mode=="IOC" else 'TRUE'; row_ce[34]='5'; row_ce[37]='2'; row_ce[38]='1'; row_ce[39]='500'; row_ce[46]='60'; row_ce[47]='50' if mode=="IOC" else '800'; row_ce[50]='100'; row_ce[51]='200'; row_ce[52]='2575'; row_ce[53]='60'; row_ce[54]='100'; row_ce[55]='200'; row_ce[56]='100'; row_ce[57]='100'; row_ce[58]='10'; row_ce[60]='1'; row_ce[64]='1999'; row_ce[66]='30'; row_ce[68]='10'; row_ce[86]='101'; row_ce[28]='80' if mode=="IOC" else '0'
-            rows.append(','.join(row_ce))
+        for gap in all_gaps_to_iterate:
+            for i in range(totStrikes):
+                if use_individual: # This logic now only applies to how strikes are calculated, not the loop
+                    leg_gaps = all_gaps_to_iterate
+                    current_ce_strike = firstStrikeCE + (i * strikeStep)
+                    ce_prices = [current_ce_strike]
+                    for j in range(legCount - 1):
+                        gap_to_add = leg_gaps[j] if j < len(leg_gaps) else leg_gaps[-1]
+                        current_ce_strike += gap_to_add; ce_prices.append(current_ce_strike)
+                else: # Old logic uses the single current gap for all legs
+                    ce_prices = [firstStrikeCE + i * strikeStep + j * gap for j in range(legCount)]
+                
+                row_ce = ['0'] * len(headers); row_ce[0] = str(pid); pid += 1; row_ce[5]=str(stgCode); row_ce[6]=csv_script; row_ce[7]=current_lotSize; row_ce[8]='-'.join(['OPTIDX']*legCount); row_ce[9]='|'.join([expiry]*legCount); row_ce[10]='|'.join(['CE']*legCount); row_ce[11]='|'.join(map(str, ce_prices)); row_ce[12]=ratio_str; row_ce[13]=buySellStr; row_ce[24]=str(gap)
+                row_ce[16]=adv_bsoq; row_ce[17]=adv_bqty; row_ce[18]=adv_bprice; row_ce[19]=adv_sprice; row_ce[20]=adv_sqty; row_ce[21]=adv_ssoq
+                row_ce[15]='1'; row_ce[25]='10'; row_ce[26]='2'; row_ce[27]='2'; row_ce[29]='5'; row_ce[30]='50' if mode=="IOC" else '200'; row_ce[31]='2'; row_ce[32]='1'; row_ce[33]='FALSE' if mode=="IOC" else 'TRUE'; row_ce[34]='5'; row_ce[37]='2'; row_ce[38]='1'; row_ce[39]='500'; row_ce[46]='60'; row_ce[47]='50' if mode=="IOC" else '800'; row_ce[50]='100'; row_ce[51]='200'; row_ce[52]='2575'; row_ce[53]='60'; row_ce[54]='100'; row_ce[55]='200'; row_ce[56]='100'; row_ce[57]='100'; row_ce[58]='10'; row_ce[60]='1'; row_ce[64]='1999'; row_ce[66]='30'; row_ce[68]='10'; row_ce[86]='101'; row_ce[28]='80' if mode=="IOC" else '0'
+                rows.append(','.join(row_ce))
 
-        for i in range(totStrikesPE):
-            pe_prices = []; current_pe_strike = firstStrikePE - (i * strikeStep)
-            if use_individual:
-                leg_gaps = [int(g.strip()) for g in gap_str.split(',') if g.strip().isdigit()]
-                pe_prices.append(current_pe_strike)
-                for j in range(legCount - 1):
-                    gap_to_subtract = leg_gaps[j] if j < len(leg_gaps) else leg_gaps[-1]
-                    current_pe_strike -= gap_to_subtract; pe_prices.append(current_pe_strike)
-            else:
-                single_gap = int(gap_str.split(',')[0].strip()) if ',' in gap_str or gap_str.strip().isdigit() else 0
-                for j in range(legCount): pe_prices.append(current_pe_strike - (j * single_gap))
-            row_pe = ['0'] * len(headers); row_pe[0] = str(pid); pid += 1; row_pe[5]=str(stgCode); row_pe[6]=csv_script; row_pe[7]=current_lotSize; row_pe[8]='-'.join(['OPTIDX']*legCount); row_pe[9]='|'.join([expiry]*legCount); row_pe[10]='|'.join(['PE']*legCount); row_pe[11]='|'.join(map(str, pe_prices)); row_pe[12]=ratio_str; row_pe[13]=buySellStr; row_pe[24]=gap_str
-            row_pe[16]=adv_bsoq; row_pe[17]=adv_bqty; row_pe[18]=adv_bprice; row_pe[19]=adv_sprice; row_pe[20]=adv_sqty; row_pe[21]=adv_ssoq
-            row_pe[15]='1'; row_pe[25]='10'; row_pe[26]='2'; row_pe[27]='2'; row_pe[29]='5'; row_pe[30]='50' if mode=="IOC" else '200'; row_pe[31]='2'; row_pe[32]='1'; row_pe[33]='FALSE' if mode=="IOC" else 'TRUE'; row_pe[34]='5'; row_pe[37]='2'; row_pe[38]='1'; row_pe[39]='500'; row_pe[46]='60'; row_pe[47]='50' if mode=="IOC" else '800'; row_pe[50]='100'; row_pe[51]='200'; row_pe[52]='2575'; row_pe[53]='60'; row_pe[54]='100'; row_pe[55]='200'; row_pe[56]='100'; row_pe[57]='100'; row_pe[58]='10'; row_pe[60]='1'; row_pe[64]='1999'; row_pe[66]='30'; row_pe[68]='10'; row_pe[86]='101'; row_pe[28]='80' if mode=="IOC" else '0'
-            rows.append(','.join(row_pe))
+            for i in range(totStrikes):
+                if use_individual:
+                    leg_gaps = all_gaps_to_iterate
+                    current_pe_strike = firstStrikePE - (i * strikeStep)
+                    pe_prices = [current_pe_strike]
+                    for j in range(legCount - 1):
+                        gap_to_subtract = leg_gaps[j] if j < len(leg_gaps) else leg_gaps[-1]
+                        current_pe_strike -= gap_to_subtract; pe_prices.append(current_pe_strike)
+                else:
+                    pe_prices = [firstStrikePE - i * strikeStep - j * gap for j in range(legCount)]
 
+                row_pe = ['0'] * len(headers); row_pe[0] = str(pid); pid += 1; row_pe[5]=str(stgCode); row_pe[6]=csv_script; row_pe[7]=current_lotSize; row_pe[8]='-'.join(['OPTIDX']*legCount); row_pe[9]='|'.join([expiry]*legCount); row_pe[10]='|'.join(['PE']*legCount); row_pe[11]='|'.join(map(str, pe_prices)); row_pe[12]=ratio_str; row_pe[13]=buySellStr; row_pe[24]=str(gap)
+                row_pe[16]=adv_bsoq; row_pe[17]=adv_bqty; row_pe[18]=adv_bprice; row_pe[19]=adv_sprice; row_pe[20]=adv_sqty; row_pe[21]=adv_ssoq
+                row_pe[15]='1'; row_pe[25]='10'; row_pe[26]='2'; row_pe[27]='2'; row_pe[29]='5'; row_pe[30]='50' if mode=="IOC" else '200'; row_pe[31]='2'; row_pe[32]='1'; row_pe[33]='FALSE' if mode=="IOC" else 'TRUE'; row_pe[34]='5'; row_pe[37]='2'; row_pe[38]='1'; row_pe[39]='500'; row_pe[46]='60'; row_pe[47]='50' if mode=="IOC" else '800'; row_pe[50]='100'; row_pe[51]='200'; row_pe[52]='2575'; row_pe[53]='60'; row_pe[54]='100'; row_pe[55]='200'; row_pe[56]='100'; row_pe[57]='100'; row_pe[58]='10'; row_pe[60]='1'; row_pe[64]='1999'; row_pe[66]='30'; row_pe[68]='10'; row_pe[86]='101'; row_pe[28]='80' if mode=="IOC" else '0'
+                rows.append(','.join(row_pe))
+            
+            # If using individual gaps, we only want to process the list of gaps once
+            if use_individual:
+                break 
     csv_content = '\n'.join(rows)
     output = io.StringIO(csv_content); output.seek(0)
     return send_file(io.BytesIO(output.read().encode('utf-8')), mimetype='text/csv', as_attachment=True, download_name=fileName)
