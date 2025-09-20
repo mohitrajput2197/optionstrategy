@@ -5,7 +5,7 @@ import json
 import threading
 import yfinance as yf
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, send_file, session, redirect, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -39,7 +39,27 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
-# (Add other models like SavedStrategy, TradeJournal here if you use them)
+last_analysis_result = db.Column(db.Text)
+
+class SavedStrategy(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    strategy_name = db.Column(db.String(100), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('strategies', lazy=True, cascade="all, delete-orphan"))
+    script = db.Column(db.String(50)); expiry = db.Column(db.String(50)); firstStrikeCE = db.Column(db.Integer)
+    firstStrikePE = db.Column(db.Integer); strikeStep = db.Column(db.Integer); totStrikes = db.Column(db.Integer)
+    buySellPattern = db.Column(db.String(50)); mode = db.Column(db.String(10)); ratios_gaps_json = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class TradeJournal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('journal_entries', lazy=True, cascade="all, delete-orphan"))
+    strategy_details_json = db.Column(db.Text, nullable=False)
+    entry_date = db.Column(db.DateTime, default=datetime.utcnow)
+    notes = db.Column(db.Text); final_pnl = db.Column(db.Float)
+
+
 
 # --- Admin Panel ---
 class MyAdminIndexView(AdminIndexView):
@@ -59,10 +79,16 @@ class SecureModelView(ModelView):
 
 admin = Admin(app, name='Control Panel', template_mode='bootstrap3', index_view=MyAdminIndexView())
 admin.add_view(SecureModelView(User, db.session))
-# (Add other admin views here if you use them)
+admin.add_view(ModelView(SavedStrategy, db.session))
+admin.add_view(ModelView(TradeJournal, db.session))
 
 with app.app_context():
     db.create_all()
+
+@app.template_filter('fromjson')
+def fromjson_filter(value):
+    return json.loads(value)
+
 
 # --- Main Routes ---
 @app.route('/')
@@ -97,7 +123,108 @@ def register():
 def logout():
     session.clear(); flash('You have been successfully logged out.', 'success'); return redirect("/login")
     
-# --- YOUR MAIN LOGIC: THE GENERATE FUNCTION (UPDATED) ---
+# --- Feature Routes ---
+@app.route('/history')
+def history():
+    if not session.get("logged_in"): return redirect('/login')
+    user = User.query.filter_by(username=session['username']).first()
+    user_strategies = SavedStrategy.query.filter_by(user_id=user.id).order_by(SavedStrategy.created_at.desc()).all()
+    return render_template('history.html', strategies=user_strategies, username=session.get("username"))
+
+@app.route('/save_strategy', methods=['POST'])
+def save_strategy():
+    if not session.get("logged_in"): return jsonify({"status": "error"}), 401
+    data = request.json; user = User.query.filter_by(username=session['username']).first()
+    new_strategy = SavedStrategy(strategy_name=data.get('strategy_name','Unnamed'), user_id=user.id, script=data.get('script'),
+                                expiry=data.get('expiry'), firstStrikeCE=data.get('firstStrikeCE'), firstStrikePE=data.get('firstStrikePE'),
+                                strikeStep=data.get('strikeStep'), totStrikes=data.get('totStrikes'), buySellPattern=data.get('buySellPattern'),
+                                mode=data.get('mode'), ratios_gaps_json=json.dumps(data.get('ratios_gaps')))
+    db.session.add(new_strategy); db.session.commit()
+    return jsonify({"status": "success", "message": f"Strategy '{new_strategy.strategy_name}' saved!"})
+
+@app.route('/load_strategy/<int:strategy_id>')
+def load_strategy(strategy_id):
+    if not session.get("logged_in"): return jsonify({}), 401
+    strategy = SavedStrategy.query.get_or_404(strategy_id)
+    user = User.query.filter_by(username=session['username']).first()
+    if strategy.user_id != user.id: return jsonify({"status": "error"}), 403
+    return jsonify({'script': strategy.script, 'expiry': strategy.expiry, 'firstStrikeCE': strategy.firstStrikeCE, 'firstStrikePE': strategy.firstStrikePE,
+                    'strikeStep': strategy.strikeStep, 'totStrikes': strategy.totStrikes, 'buySellPattern': strategy.buySellPattern,
+                    'mode': strategy.mode, 'ratios_gaps': json.loads(strategy.ratios_gaps_json)})
+
+@app.route('/delete_strategy', methods=['POST'])
+def delete_strategy():
+    if not session.get("logged_in"): return jsonify({}), 401
+    strategy = SavedStrategy.query.get_or_404(request.json.get('id'))
+    user = User.query.filter_by(username=session['username']).first()
+    if strategy.user_id != user.id: return jsonify({"status": "error"}), 403
+    db.session.delete(strategy); db.session.commit()
+    return jsonify({"status": "success", "message": "Strategy deleted."})
+
+@app.route('/journal')
+def journal():
+    if not session.get("logged_in"): return redirect('/login')
+    user = User.query.filter_by(username=session['username']).first()
+    try:
+        time_limit = datetime.utcnow() - timedelta(hours=24)
+        entries_to_delete = TradeJournal.query.filter(TradeJournal.user_id == user.id, TradeJournal.entry_date < time_limit).all()
+        if entries_to_delete:
+            for entry in entries_to_delete: db.session.delete(entry)
+            db.session.commit()
+    except Exception as e: print(f"Error during auto-deletion: {e}"); db.session.rollback()
+    entries = TradeJournal.query.filter_by(user_id=user.id).order_by(TradeJournal.entry_date.desc()).all()
+    return render_template('journal.html', entries=entries, username=session.get("username"))
+
+@app.route('/update_journal_entry', methods=['POST'])
+def update_journal_entry():
+    if not session.get("logged_in"): return jsonify({"status": "error"}), 401
+    data = request.json; entry = TradeJournal.query.get_or_404(data.get('id'))
+    user = User.query.filter_by(username=session['username']).first()
+    if entry.user_id != user.id: return jsonify({"status": "error"}), 403
+    entry.notes = data.get('notes')
+    try: entry.final_pnl = float(data.get('pnl')) if data.get('pnl') else None
+    except (ValueError, TypeError): entry.final_pnl = None
+    db.session.commit(); return jsonify({"status": "success"})
+
+@app.route('/journal/delete', methods=['POST'])
+def delete_journal_entry():
+    if not session.get("logged_in"): return jsonify({"status": "error"}), 401
+    entry = TradeJournal.query.get_or_404(request.json.get('id'))
+    user = User.query.filter_by(username=session['username']).first()
+    if entry.user_id != user.id: return jsonify({"status": "error"}), 403
+    db.session.delete(entry); db.session.commit()
+    return jsonify({"status": "success", "message": "Journal entry deleted."})
+
+@app.route('/market_insight')
+def market_insight():
+    if not session.get("logged_in"): return jsonify({"insight": "Not authorized."})
+    vix_price = 15.0
+    try:
+        vix_ticker = yf.Ticker('^INDIAVIX')
+        info = vix_ticker.info
+        if info and info.get('regularMarketPrice'): vix_price = info['regularMarketPrice']
+    except Exception as e: print(f"Error fetching VIX from yfinance: {e}")
+    insight = f"Market volatility is neutral (VIX at {vix_price:.2f}). Exercise caution."
+    if vix_price > 20: insight = f"High volatility detected (VIX at {vix_price:.2f}). Consider strategies that sell premium."
+    elif vix_price < 12: insight = f"Low volatility detected (VIX at {vix_price:.2f}). Consider strategies that buy premium."
+    return jsonify({"insight": insight})
+
+@app.route('/ticker_data')
+def ticker_data():
+    if not session.get("logged_in"): return jsonify({"error": "Not authorized"}), 401
+    symbol_map = {'NIFTY 50': '^NSEI', 'NIFTY Bank': '^NSEBANK', 'SENSEX': '^BSESN'}
+    ticker_results = []
+    for display_name, api_symbol in symbol_map.items():
+        try:
+            ticker = yf.Ticker(api_symbol); info = ticker.info
+            price = info.get('regularMarketPrice'); prev_close = info.get('previousClose')
+            if price and prev_close:
+                change = price - prev_close; percent_change = (change / prev_close) * 100
+                ticker_results.append({'symbol': display_name, 'value': price, 'change': change, 'percent': percent_change})
+        except Exception as e: print(f"Error fetching {api_symbol} from yfinance: {e}")
+    return jsonify({"data": ticker_results})
+
+# --- YOUR ORIGINAL MAIN LOGIC: THE GENERATE FUNCTION ---
 @app.route('/generate', methods=['POST'])
 def generate():
     if not session.get("logged_in"): return redirect("/login")
@@ -201,6 +328,9 @@ def generate():
             # If using individual gaps, we only want to process the list of gaps once
             if use_individual:
                 break 
+            
+            
+
     csv_content = '\n'.join(rows)
     output = io.StringIO(csv_content); output.seek(0)
     return send_file(io.BytesIO(output.read().encode('utf-8')), mimetype='text/csv', as_attachment=True, download_name=fileName)
