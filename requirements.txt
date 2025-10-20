@@ -1,10 +1,10 @@
-Flask==3.1.2
-Flask-Admin==1.6.1
-Flask-SQLAlchemy==3.1.1
-SQLAlchemy==2.0.32
+Flask
+Flask-Admin
+Flask-SQLAlchemy
+SQLAlchemy
 Werkzeug
 Jinja2
-WTForms==3.0.1
+WTForms
 yfinance
 pandas
 requests
