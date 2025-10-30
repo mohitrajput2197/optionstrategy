@@ -305,7 +305,7 @@ def generate():
                     ce_prices = [firstStrikeCE + i * strikeStep + j * gap for j in range(legCount)]
                 
                 row_ce = ['0'] * len(headers); row_ce[0] = str(pid); pid += 1; row_ce[5]=str(stgCode); row_ce[6]=csv_script; row_ce[7]=current_lotSize; row_ce[8]='-'.join(['OPTIDX']*legCount); row_ce[9]='|'.join([expiry]*legCount); row_ce[10]='|'.join(['CE']*legCount); row_ce[11]='|'.join(map(str, ce_prices)); row_ce[12]=ratio_str; row_ce[13]=buySellStr; row_ce[24]=str(gap)
-                row_ce[16]=adv_bsoq; row_ce[17]=adv_bqty; row_ce[18]=adv_bprice; row_ce[19]=adv_sprice; row_ce[20]=adv_sqty; row_ce[21]=adv_ssoq
+                row_ce[16]=adv_bsoq; row_ce[17]=adv_bqty; row_ce[18]=str(int(float(adv_bprice)) * 100) if adv_bprice != '0' else '0'; row_ce[19]=str(int(float(adv_sprice)) * 100) if adv_sprice != '0' else '0'; row_ce[20]=adv_sqty; row_ce[21]=adv_ssoq
                 row_ce[15]='1'; row_ce[25]='10'; row_ce[26]='2'; row_ce[27]='2'; row_ce[29]='5'; row_ce[30]='50' if mode=="IOC" else '200'; row_ce[31]='2'; row_ce[32]='1'; row_ce[33]='FALSE' if mode=="IOC" else 'TRUE'; row_ce[34]='5'; row_ce[37]='2'; row_ce[38]='1'; row_ce[39]='500'; row_ce[46]='60'; row_ce[47]='50' if mode=="IOC" else '800'; row_ce[50]='100'; row_ce[51]='200'; row_ce[52]='2575'; row_ce[53]='60'; row_ce[54]='100'; row_ce[55]='200'; row_ce[56]='100'; row_ce[57]='100'; row_ce[58]='10'; row_ce[60]='1'; row_ce[64]='1999'; row_ce[66]='30'; row_ce[68]='10'; row_ce[86]='101'; row_ce[28]='80' if mode=="IOC" else '0'
                 rows.append(','.join(row_ce))
 
@@ -321,7 +321,7 @@ def generate():
                     pe_prices = [firstStrikePE - i * strikeStep - j * gap for j in range(legCount)]
 
                 row_pe = ['0'] * len(headers); row_pe[0] = str(pid); pid += 1; row_pe[5]=str(stgCode); row_pe[6]=csv_script; row_pe[7]=current_lotSize; row_pe[8]='-'.join(['OPTIDX']*legCount); row_pe[9]='|'.join([expiry]*legCount); row_pe[10]='|'.join(['PE']*legCount); row_pe[11]='|'.join(map(str, pe_prices)); row_pe[12]=ratio_str; row_pe[13]=buySellStr; row_pe[24]=str(gap)
-                row_pe[16]=adv_bsoq; row_pe[17]=adv_bqty; row_pe[18]=adv_bprice; row_pe[19]=adv_sprice; row_pe[20]=adv_sqty; row_pe[21]=adv_ssoq
+                row_pe[16]=adv_bsoq; row_pe[17]=adv_bqty; row_ce[18]=str(int(float(adv_bprice)) * 100) if adv_bprice != '0' else '0'; row_ce[19]=str(int(float(adv_sprice)) * 100) if adv_sprice != '0' else '0'; row_pe[20]=adv_sqty; row_pe[21]=adv_ssoq
                 row_pe[15]='1'; row_pe[25]='10'; row_pe[26]='2'; row_pe[27]='2'; row_pe[29]='5'; row_pe[30]='50' if mode=="IOC" else '200'; row_pe[31]='2'; row_pe[32]='1'; row_pe[33]='FALSE' if mode=="IOC" else 'TRUE'; row_pe[34]='5'; row_pe[37]='2'; row_pe[38]='1'; row_pe[39]='500'; row_pe[46]='60'; row_pe[47]='50' if mode=="IOC" else '800'; row_pe[50]='100'; row_pe[51]='200'; row_pe[52]='2575'; row_pe[53]='60'; row_pe[54]='100'; row_pe[55]='200'; row_pe[56]='100'; row_pe[57]='100'; row_pe[58]='10'; row_pe[60]='1'; row_pe[64]='1999'; row_pe[66]='30'; row_pe[68]='10'; row_pe[86]='101'; row_pe[28]='80' if mode=="IOC" else '0'
                 rows.append(','.join(row_pe))
             
@@ -337,4 +337,3 @@ def generate():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
