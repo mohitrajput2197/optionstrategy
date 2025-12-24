@@ -11,86 +11,86 @@
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { 
-            margin: 0; 
-            min-height: 100vh; 
-            font-family: 'Inter', Arial, sans-serif; 
-            background: #171f2c; 
-            overflow-x: hidden; 
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Inter', Arial, sans-serif;
+            background: #171f2c;
+            overflow-x: hidden;
             transition: all 0.5s ease;
         }
-        
+
         /* ===== ORIGINAL BACKGROUND & LOGO - NOT CHANGED ===== */
-        .chart-bg { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100vw; 
-            height: 100vh; 
-            z-index: 0; 
-            pointer-events: none; 
-            background: #171f2c; 
+        .chart-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            background: #171f2c;
         }
-        
-        .chart-bg::after { 
-            content: ""; 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100vw; 
-            height: 100vh; 
-            z-index: 1; 
-            opacity: 0.8; 
-            background: linear-gradient(120deg,#365072b0 10%,#7adcf4aa 90%,#171f2c 100%), 
-                       url("data:image/svg+xml,%3Csvg width='1100' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.34'%3E%3Cpolyline points='50,560 110,340 190,410 270,320 350,170 470,350 690,190 890,450 1040,390' style='fill:none;stroke:%23ffa400;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;'/%3E%3Cpolyline points='100,420 200,540 320,350 520,200 900,220' style='fill:none;stroke:%2350e07c;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;'/%3E%3C/g%3E%3C/svg%3E"); 
-            background-repeat: no-repeat; 
-            background-size: cover; 
-            background-position: center center; 
-            pointer-events: none; 
+
+        .chart-bg::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            opacity: 0.8;
+            background: linear-gradient(120deg,#365072b0 10%,#7adcf4aa 90%,#171f2c 100%),
+                       url("data:image/svg+xml,%3Csvg width='1100' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.34'%3E%3Cpolyline points='50,560 110,340 190,410 270,320 350,170 470,350 690,190 890,450 1040,390' style='fill:none;stroke:%23ffa400;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;'/%3E%3Cpolyline points='100,420 200,540 320,350 520,200 900,220' style='fill:none;stroke:%2350e07c;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;'/%3E%3C/g%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center center;
+            pointer-events: none;
         }
-        
-        .logo-rajput-animated { 
-            position: fixed; 
-            left: 15px; 
-            top: 15px; 
-            z-index: 100; 
-            width: 68px; 
-            height: 68px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background: rgba(34,34,34,0.47); 
-            border-radius: 20px; 
-            box-shadow: 0 4px 20px #67d1ff79,0 0 0 3px #67d1ff31; 
-            padding: 9px; 
-            pointer-events: none; 
-            animation: pulse-glow 2.6s infinite; 
+
+        .logo-rajput-animated {
+            position: fixed;
+            left: 15px;
+            top: 15px;
+            z-index: 100;
+            width: 68px;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(34,34,34,0.47);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px #67d1ff79,0 0 0 3px #67d1ff31;
+            padding: 9px;
+            pointer-events: none;
+            animation: pulse-glow 2.6s infinite;
         }
-        
-        .logo-rajput-animated img { 
-            width: 95%; 
-            height: 95%; 
-            object-fit: contain; 
-            opacity: 1; 
-            background: transparent; 
-            border-radius: 14px; 
-            box-shadow: 0 0 14px #67d1ffb7, 0 1px 22px #d6f5ffb7, 0 0 0 #67d1ff; 
-            animation: logo-glow 2.6s infinite; 
+
+        .logo-rajput-animated img {
+            width: 95%;
+            height: 95%;
+            object-fit: contain;
+            opacity: 1;
+            background: transparent;
+            border-radius: 14px;
+            box-shadow: 0 0 14px #67d1ffb7, 0 1px 22px #d6f5ffb7, 0 0 0 #67d1ff;
+            animation: logo-glow 2.6s infinite;
         }
-        
-        @keyframes pulse-glow { 
-            0%, 100% { box-shadow: 0 4px 20px #67d1ff79,0 0 0 3px #67d1ff31;} 
-            50% { box-shadow: 0 2px 38px #67d1ffdd,0 0 0 7px #9ae9ff45;} 
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 4px 20px #67d1ff79,0 0 0 3px #67d1ff31;}
+            50% { box-shadow: 0 2px 38px #67d1ffdd,0 0 0 7px #9ae9ff45;}
         }
-        
-        @keyframes logo-glow { 
-            0%, 100% { box-shadow: 0 0 10px #67d1ffb7, 0 1px 16px #d6f5ffb7; } 
-            50% { box-shadow: 0 0 48px #67d1ff, 0 2px 22px #c0eaffcc; } 
+
+        @keyframes logo-glow {
+            0%, 100% { box-shadow: 0 0 10px #67d1ffb7, 0 1px 16px #d6f5ffb7; }
+            50% { box-shadow: 0 0 48px #67d1ff, 0 2px 22px #c0eaffcc; }
         }
         /* ===== END ORIGINAL BACKGROUND & LOGO ===== */
-        
+
         /* ===== NEW ENHANCED CONTROLS ===== */
-        
+
         /* Theme Toggle Button */
         .theme-toggle {
             position: fixed;
@@ -182,7 +182,7 @@
         }
 
         body.light-theme .chart-bg::after {
-            background: linear-gradient(120deg, #e6f3ff 10%, #b8e0ff 90%, #f0f8ff 100%), 
+            background: linear-gradient(120deg, #e6f3ff 10%, #b8e0ff 90%, #f0f8ff 100%),
                        url("data:image/svg+xml,%3Csvg width='1100' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.5'%3E%3Cpolyline points='50,560 110,340 190,410 270,320 350,170 470,350 690,190 890,450 1040,390' style='fill:none;stroke:%23ff6b35;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;'/%3E%3Cpolyline points='100,420 200,540 320,350 520,200 900,220' style='fill:none;stroke:%2340a85f;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;'/%3E%3C/g%3E%3C/svg%3E");
         }
 
@@ -296,307 +296,307 @@
         }
 
         /* ===== ORIGINAL STYLES CONTINUE ===== */
-        .ticker-bar { 
-            width: 100vw; 
-            overflow: hidden; 
-            background: #f7fcff; 
-            box-shadow: 0 3px 12px #64d4e535; 
-            border-top: 1.5px solid #dde8ee; 
-            border-bottom: 1.5px solid #dde8ee; 
-            position: relative; 
-            z-index: 3; 
-            height: 42px; 
+        .ticker-bar {
+            width: 100vw;
+            overflow: hidden;
+            background: #f7fcff;
+            box-shadow: 0 3px 12px #64d4e535;
+            border-top: 1.5px solid #dde8ee;
+            border-bottom: 1.5px solid #dde8ee;
+            position: relative;
+            z-index: 3;
+            height: 42px;
         }
-        
-        .ticker-track { 
-            display: flex; 
-            align-items: center; 
-            gap: 24px; 
-            height: 42px; 
-            animation: ticker-scroll 40s linear infinite; 
+
+        .ticker-track {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            height: 42px;
+            animation: ticker-scroll 40s linear infinite;
         }
-        
-        .ticker-item { 
-            font-family: 'Inter', Arial, sans-serif; 
-            color: #184175; 
-            font-size: 1.04rem; 
-            font-weight: 600; 
-            padding: 0 15px; 
-            border-right: 2px solid #e3f3f7; 
-            display: flex; 
-            align-items: center; 
-            min-width: 220px; 
-            white-space: nowrap; 
-            flex-shrink: 0; 
+
+        .ticker-item {
+            font-family: 'Inter', Arial, sans-serif;
+            color: #184175;
+            font-size: 1.04rem;
+            font-weight: 600;
+            padding: 0 15px;
+            border-right: 2px solid #e3f3f7;
+            display: flex;
+            align-items: center;
+            min-width: 220px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
-        
-        .ticker-item:last-child{border:none;} 
-        .up{color:#0aa869;font-weight:700;} 
-        .down{color:#e9176e;font-weight:700;} 
+
+        .ticker-item:last-child{border:none;}
+        .up{color:#0aa869;font-weight:700;}
+        .down{color:#e9176e;font-weight:700;}
         .idx-symbol{color:#227773;font-weight:700;font-size:1em;margin-right:8px;}
-        
+
         @keyframes ticker-scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
-        
-        .container { 
-            max-width: 1200px; 
-            margin: 36px auto; 
-            background: #ffffff1c; 
-            border-radius: 24px; 
-            box-shadow: 0 8px 38px #0000004d; 
-            padding: 24px 36px; 
-            position: relative; 
-            z-index: 3; 
-            backdrop-filter: blur(10px); 
+
+        .container {
+            max-width: 1200px;
+            margin: 36px auto;
+            background: #ffffff1c;
+            border-radius: 24px;
+            box-shadow: 0 8px 38px #0000004d;
+            padding: 24px 36px;
+            position: relative;
+            z-index: 3;
+            backdrop-filter: blur(10px);
             transition: all 0.5s ease;
         }
-        
-        h1.welcome-heading { 
-            color: #fff; 
-            text-align: left; 
-            margin-bottom: 1.5rem; 
+
+        h1.welcome-heading {
+            color: #fff;
+            text-align: left;
+            margin-bottom: 1.5rem;
             transition: color 0.5s ease;
         }
-        
-        h1.welcome-heading span { 
-            font-weight: 800; 
-            color: #7adcf4; 
-            text-transform: capitalize; 
+
+        h1.welcome-heading span {
+            font-weight: 800;
+            color: #7adcf4;
+            text-transform: capitalize;
             transition: color 0.5s ease;
         }
-        
-        h2 { 
-            color: #7adcf4; 
-            border-bottom: 1px solid #7adcf433; 
-            padding-bottom: 10px; 
-            margin-top: 0; 
-            margin-bottom: 25px; 
+
+        h2 {
+            color: #7adcf4;
+            border-bottom: 1px solid #7adcf433;
+            padding-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 25px;
             font-size: 1.8em;
             transition: all 0.5s ease;
         }
-        
-        #live-clock-container { 
-            text-align: left; 
-            color: #a2dff7; 
-            font-size: 1.1em; 
-            font-weight: 600; 
-            margin-top: -1.5rem; 
-            margin-bottom: 2rem; 
-            text-shadow: 0 0 5px rgba(0,0,0,0.3); 
+
+        #live-clock-container {
+            text-align: left;
+            color: #a2dff7;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-top: -1.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 5px rgba(0,0,0,0.3);
             transition: color 0.5s ease;
         }
-        
+
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
         @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
-        .row { display: flex; gap: 22px; margin-bottom: 18px; } 
+        .row { display: flex; gap: 22px; margin-bottom: 18px; }
         .col { flex: 1; }
         .input-group { position: relative; margin-bottom: 24px; }
-        
-        .input-field { 
-            width: 100%; 
-            box-sizing: border-box; 
-            font-size: 1.06rem; 
-            border: 1.45px solid #7adcf488; 
-            border-radius: 8px; 
-            padding: 14px; 
-            background: #f6fbfc22; 
-            color: #fff; 
-            outline: none; 
+
+        .input-field {
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1.06rem;
+            border: 1.45px solid #7adcf488;
+            border-radius: 8px;
+            padding: 14px;
+            background: #f6fbfc22;
+            color: #fff;
+            outline: none;
             transition: all 0.3s ease;
         }
-        
-        .input-label { 
-            position: absolute; 
-            top: 14px; 
-            left: 15px; 
-            color: #7adcf4aa; 
-            pointer-events: none; 
-            transition: all 0.2s ease-out; 
+
+        .input-label {
+            position: absolute;
+            top: 14px;
+            left: 15px;
+            color: #7adcf4aa;
+            pointer-events: none;
+            transition: all 0.2s ease-out;
         }
-        
-        .input-field:focus + .input-label, 
-        .input-field:not(:placeholder-shown) + .input-label { 
-            top: -8px; 
-            left: 12px; 
-            font-size: 0.8em; 
-            color: #7adcf4; 
-            background: #283a54; 
-            padding: 0 5px; 
+
+        .input-field:focus + .input-label,
+        .input-field:not(:placeholder-shown) + .input-label {
+            top: -8px;
+            left: 12px;
+            font-size: 0.8em;
+            color: #7adcf4;
+            background: #283a54;
+            padding: 0 5px;
         }
-        
-        select.input-field { 
-            color: #e0faff; 
-            color-scheme: dark; 
-        } 
-        
-        select.input-field option { 
-            background: #283a54; 
-            color: #e0faff; 
+
+        select.input-field {
+            color: #e0faff;
+            color-scheme: dark;
         }
-        
-        .expiry-label-group { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 5px; 
+
+        select.input-field option {
+            background: #283a54;
+            color: #e0faff;
         }
-        
-        .expiry-label-group label { 
-            margin-bottom: 0; 
-            color: #a2dff7; 
-            font-weight: 600; 
+
+        .expiry-label-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
         }
-        
-        .expiry-buttons button { 
-            font-size: 0.75rem; 
-            padding: 4px 8px; 
-            border-radius: 4px; 
-            background-color: #007bff; 
-            color: white; 
-            border: none; 
-            cursor: pointer; 
+
+        .expiry-label-group label {
+            margin-bottom: 0;
+            color: #a2dff7;
+            font-weight: 600;
         }
-        
-        @keyframes fadeInDown { 
-            from { opacity: 0; transform: translateY(-15px); } 
-            to { opacity: 1; transform: translateY(0); } 
+
+        .expiry-buttons button {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
         }
-        
-        button { 
-            cursor: pointer; 
-            border: none; 
-            font-family: inherit; 
-            font-weight: 600; 
-            transition: all 0.2s; 
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        
+
+        button {
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
         button:hover { transform: translateY(-2px); }
-        
-        .add-btn { 
-            background: #007bff; 
-            color: white; 
-            font-size: 1rem; 
-            padding: 10px 25px; 
-            border-radius: 5px; 
+
+        .add-btn {
+            background: #007bff;
+            color: white;
+            font-size: 1rem;
+            padding: 10px 25px;
+            border-radius: 5px;
         }
-        
-        .remove-btn { 
-            background: #ff5c5c; 
-            color: white; 
-            font-size: 0.9rem; 
-            padding: 8px 15px; 
-            border-radius: 6px; 
+
+        .remove-btn {
+            background: #ff5c5c;
+            color: white;
+            font-size: 0.9rem;
+            padding: 8px 15px;
+            border-radius: 6px;
         }
-        
-        .pair-row { 
-            border-bottom: 1px solid #7adcf433; 
-            padding-bottom: 18px; 
-            margin-bottom: 18px; 
+
+        .pair-row {
+            border-bottom: 1px solid #7adcf433;
+            padding-bottom: 18px;
+            margin-bottom: 18px;
         }
-        
-        .admin-link { 
-            background: #e74c3c; 
-            color: white; 
-            padding: 9px 15px; 
-            border-radius: 7px; 
-            font-weight: 700; 
-            text-decoration: none; 
+
+        .admin-link {
+            background: #e74c3c;
+            color: white;
+            padding: 9px 15px;
+            border-radius: 7px;
+            font-weight: 700;
+            text-decoration: none;
         }
-        
-        .insight-panel { 
-            background: #e6f7ff22; 
-            border-left: 5px solid #1890ff; 
-            padding: 15px 20px; 
-            border-radius: 5px; 
-            color: #e0faff; 
+
+        .insight-panel {
+            background: #e6f7ff22;
+            border-left: 5px solid #1890ff;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: #e0faff;
             transition: all 0.5s ease;
         }
-        
-        .insight-panel h3 { 
-            color: #7adcf4; 
-            margin-top: 0; 
+
+        .insight-panel h3 {
+            color: #7adcf4;
+            margin-top: 0;
             transition: color 0.5s ease;
         }
-        
+
         .actions { text-align: center; }
         .actions button { font-size: 1.1rem; }
-        
-        .loader { 
-            width: 25px; 
-            height: 25px; 
-            border: 4px solid #f3f3f3; 
-            border-top: 4px solid #3498db; 
-            border-radius: 50%; 
-            animation: spin 1s linear infinite; 
-            display: none; 
-            position: absolute; 
-            left: 50%; 
-            top: 50%; 
-            margin: -12.5px 0 0 -12.5px; 
+
+        .loader {
+            width: 25px;
+            height: 25px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin: -12.5px 0 0 -12.5px;
         }
-        
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        
-        button.loading { 
-            background: #7f8c8d; 
-            cursor: not-allowed; 
-            transform: none; 
+
+        button.loading {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
         }
-        
-        .advanced-accordion-label { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin: 20px 0 15px 0; 
-            color: #7adcf4; 
-            cursor: pointer; 
-            font-weight: 600; 
-            padding: 12px; 
-            border-radius: 8px; 
-            border: 1px solid #444; 
-            background: transparent; 
-            width: 100%; 
-            box-sizing: border-box; 
+
+        .advanced-accordion-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0 15px 0;
+            color: #7adcf4;
+            cursor: pointer;
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: transparent;
+            width: 100%;
+            box-sizing: border-box;
             transition: all 0.5s ease;
         }
-        
-        .advanced-accordion-label input { 
-            width: auto; 
-            margin-right: 10px; 
+
+        .advanced-accordion-label input {
+            width: auto;
+            margin-right: 10px;
         }
-        
-        .accordion-panel { 
-            background: rgba(0, 150, 200, 0.1); 
-            border-left: 4px solid #00f2ea; 
-            padding: 0 20px; 
-            margin-bottom: 15px; 
-            border-radius: 0 8px 8px 0; 
-            max-height: 0; 
-            overflow: hidden; 
-            transition: max-height 0.4s ease-out, padding 0.4s ease-out; 
+
+        .accordion-panel {
+            background: rgba(0, 150, 200, 0.1);
+            border-left: 4px solid #00f2ea;
+            padding: 0 20px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
         }
-        
-        .advanced-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-            gap: 20px; 
+
+        .advanced-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
             padding: 20px 0;
         }
-        
-        .gap-option { 
-            font-size: 0.8em; 
-            color: #a2dff7; 
-            display: flex; 
-            align-items: center; 
-            margin-top: -15px; 
+
+        .gap-option {
+            font-size: 0.8em;
+            color: #a2dff7;
+            display: flex;
+            align-items: center;
+            margin-top: -15px;
             transition: color 0.5s ease;
         }
-        
-        .gap-option input { 
-            width: auto; 
-            margin-right: 5px; 
+
+        .gap-option input {
+            width: auto;
+            margin-right: 5px;
         }
     </style>
 </head>
@@ -606,23 +606,23 @@
     <div class="logo-rajput-animated">
         <img src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/30a21fb5-200c-45ef-93b8-f5fdc17c0bd3.png" alt="Logo">
     </div>
-    
+
     <!-- NEW ENHANCED CONTROLS -->
     <!-- Theme Toggle Button -->
     <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Day/Night Theme">
         <i class="fas fa-moon" id="theme-icon"></i>
     </div>
-    
+
     <!-- Voice Control Button -->
     <div class="voice-control" onclick="toggleVoiceListening()" title="Voice Commands">
         <i class="fas fa-microphone" id="voice-icon"></i>
     </div>
-    
+
     <!-- Voice Status -->
     <div class="voice-status" id="voice-status">
         🎤 Listening for commands...
     </div>
-    
+
     <!-- Original Ticker - NOT CHANGED -->
     <div class="ticker-bar" id="ticker">
         <div class="ticker-track"></div>
@@ -646,7 +646,7 @@
                                 <option value="BANKNIFTY">BANKNIFTY</option>
                                 <option value="SENSEX">SENSEX</option>
                                 <option value="FINNIFTY">FINNIFTY</option>
-                                <option value="MIDCAP">MIDCAP</option>
+                                <option value="MIDCPNIFTY">MIDCPNIFTY</option>
                             </select>
                         </div>
                         <div class="col">
@@ -700,7 +700,7 @@
                         </div>
                         <div class="col"></div>
                     </div>
-                    
+
                     <label class="advanced-accordion-label">
                         <input type="checkbox" id="toggleAdvanced" name="use_advanced_csv">
                         Use Advanced CSV Parameters
@@ -733,7 +733,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="actions">
                         <div class="input-group" style="display:flex; gap: 10px; align-items: center;">
                             <input type="text" id="strategyName" placeholder=" " class="input-field">
@@ -777,7 +777,7 @@
         const loader = document.querySelector('.actions .loader');
         const toggleAdvanced = document.getElementById('toggleAdvanced');
         const accordionPanel = document.querySelector('.accordion-panel');
-        
+
         // === NEW ENHANCED VARIABLES ===
         let currentTheme = localStorage.getItem('theme') || 'dark';
         let isVoiceListening = false;
@@ -786,18 +786,18 @@
         let tickerInterval = null;
 
         // === ENHANCED TOAST SYSTEM ===
-        function showToast(message, isError = false, duration = 4000) { 
-            const bgColor = isError ? 
-                "linear-gradient(135deg, #E74C3C, #C0392B)" : 
+        function showToast(message, isError = false, duration = 4000) {
+            const bgColor = isError ?
+                "linear-gradient(135deg, #E74C3C, #C0392B)" :
                 "linear-gradient(135deg, #00d68f, #13a561)";
-            
-            Toastify({ 
-                text: message, 
+
+            Toastify({
+                text: message,
                 duration: duration,
-                close: true, 
-                gravity: "top", 
+                close: true,
+                gravity: "top",
                 position: "right",
-                style: { 
+                style: {
                     background: bgColor,
                     borderRadius: "12px",
                     boxShadow: "0 8px 25px rgba(0,0,0,0.3)",
@@ -806,14 +806,14 @@
                     padding: "15px 20px",
                     maxWidth: "400px"
                 }
-            }).showToast(); 
+            }).showToast();
         }
 
         // === DAY/NIGHT THEME SYSTEM ===
         function toggleTheme() {
             const body = document.body;
             const themeIcon = document.getElementById('theme-icon');
-            
+
             if (currentTheme === 'dark') {
                 body.classList.add('light-theme');
                 themeIcon.classList.remove('fa-moon');
@@ -827,7 +827,7 @@
                 currentTheme = 'dark';
                 showToast('🌙 Switched to Dark Theme - Elegant & Modern!');
             }
-            
+
             localStorage.setItem('theme', currentTheme);
         }
 
@@ -836,30 +836,30 @@
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 voiceRecognition = new SpeechRecognition();
-                
+
                 voiceRecognition.continuous = false;
                 voiceRecognition.interimResults = false;
                 voiceRecognition.lang = 'en-US';
                 voiceRecognition.maxAlternatives = 1;
-                
+
                 voiceRecognition.onstart = function() {
                     document.getElementById('voice-status').style.display = 'block';
                     showToast('🎤 Voice Assistant Activated - Speak your command!');
                 };
-                
+
                 voiceRecognition.onresult = function(event) {
                     const command = event.results[0][0].transcript.toLowerCase();
                     const confidence = event.results[0][0].confidence;
-                    
+
                     showToast(`🗣️ Heard: "${command}" (${Math.round(confidence * 100)}% confidence)`);
                     processVoiceCommand(command);
                 };
-                
+
                 voiceRecognition.onerror = function(event) {
                     showToast('❌ Voice error: ' + event.error, true);
                     stopVoiceListening();
                 };
-                
+
                 voiceRecognition.onend = function() {
                     stopVoiceListening();
                 };
@@ -872,7 +872,7 @@
             if (!voiceRecognition) {
                 initializeVoiceRecognition();
             }
-            
+
             if (isVoiceListening) {
                 stopVoiceListening();
             } else {
@@ -901,7 +901,7 @@
         // === ENHANCED VOICE COMMAND PROCESSOR ===
         function processVoiceCommand(command) {
             console.log('🎤 Processing voice command:', command);
-            
+
             // Script selection commands
             if (command.includes('nifty') && !command.includes('bank')) {
                 scriptSelect.value = 'NIFTY';
@@ -923,28 +923,28 @@
                 updateStrikeFields();
                 showToast('🏛️ FINNIFTY selected via voice!');
             }
-            else if (command.includes('midcap')) {
-                scriptSelect.value = 'MIDCAP';
+            else if (command.includes('midcpnifty')) {
+                scriptSelect.value = 'MIDCPNIFTY';
                 updateStrikeFields();
-                showToast('📊 MIDCAP selected via voice!');
+                showToast('📊 MIDCPNIFTY selected via voice!');
             }
-            
+
             // Add pair command
             else if (command.includes('add') && (command.includes('pair') || command.includes('row'))) {
                 addPair();
                 showToast('✅ New ratio/gap pair added via voice!');
             }
-            
+
             // Expiry commands
             else if (command.includes('weekly') || command.includes('week')) {
                 setSmartExpiry('weekly');
                 showToast('📅 Weekly expiry set via voice!');
-            } 
+            }
             else if (command.includes('monthly') || command.includes('month')) {
                 setSmartExpiry('monthly');
                 showToast('📅 Monthly expiry set via voice!');
             }
-            
+
             // Pattern commands
             else if (command.includes('sell buy sell') || command.includes('s b s')) {
                 buySellPatternInput.value = 'S.B.S';
@@ -956,7 +956,7 @@
                 updateFileName();
                 showToast('📋 B.S.B pattern set via voice!');
             }
-            
+
             // Action commands
             else if (command.includes('download') || command.includes('generate') || command.includes('csv')) {
                 generateBtn.click();
@@ -966,12 +966,12 @@
                 document.getElementById('saveStrategyBtn').click();
                 showToast('💾 Strategy save triggered via voice!');
             }
-            
+
             // Theme command
             else if (command.includes('switch theme') || command.includes('toggle theme') || command.includes('change theme')) {
                 toggleTheme();
             }
-            
+
             // Advanced options
             else if (command.includes('advanced') || command.includes('show advanced')) {
                 if (!toggleAdvanced.checked) {
@@ -982,7 +982,7 @@
                     showToast('⚙️ Advanced options are already enabled');
                 }
             }
-            
+
             // Help command
             else if (command.includes('help') || command.includes('commands')) {
                 const helpCommands = [
@@ -993,11 +993,11 @@
                 ];
                 showToast(`🎤 Available commands: ${helpCommands.slice(0,4).join(', ')} and more!`, false, 8000);
             }
-            
+
             // Unknown command
             else {
                 const suggestions = [
-                    '"Select NIFTY"', '"Add pair"', '"Weekly expiry"', 
+                    '"Select NIFTY"', '"Add pair"', '"Weekly expiry"',
                     '"Download CSV"', '"Switch theme"', '"Help"'
                 ];
                 showToast(`🤔 Command "${command}" not recognized. Try: ${suggestions.slice(0,3).join(', ')} or say "Help"`, true, 6000);
@@ -1005,42 +1005,42 @@
         }
 
         // === ORIGINAL FUNCTIONS (Enhanced) ===
-        function updateFileName() { 
-            const script = scriptSelect.value; 
-            const firstRatioInput = document.querySelector('input[name="ratios"]'); 
-            const ratio = firstRatioInput ? firstRatioInput.value.replace(/[\s.]/g, '') : 'strategy'; 
-            const dateStr = new Date().toISOString().split('T')[0]; 
-            document.getElementById('fileName').value = `${script}_${ratio}_${dateStr}.csv`; 
+        function updateFileName() {
+            const script = scriptSelect.value;
+            const firstRatioInput = document.querySelector('input[name="ratios"]');
+            const ratio = firstRatioInput ? firstRatioInput.value.replace(/[\s.]/g, '') : 'strategy';
+            const dateStr = new Date().toISOString().split('T')[0];
+            document.getElementById('fileName').value = `${script}_${ratio}_${dateStr}.csv`;
         }
 
         function handleInputFiltering(event) {
-            const input = event.target; 
+            const input = event.target;
             let originalValue = input.value, cleanedValue = originalValue;
-            if (input.classList.contains('validate-ratio')) { 
-                cleanedValue = originalValue.replace(/[^0-9.]/g, ''); 
+            if (input.classList.contains('validate-ratio')) {
+                cleanedValue = originalValue.replace(/[^0-9.]/g, '');
             }
-            if (input.classList.contains('validate-gaps')) { 
-                cleanedValue = originalValue.replace(/[^0-9,]/g, ''); 
+            if (input.classList.contains('validate-gaps')) {
+                cleanedValue = originalValue.replace(/[^0-9,]/g, '');
             }
-            if (cleanedValue !== originalValue) { 
-                input.value = cleanedValue; 
+            if (cleanedValue !== originalValue) {
+                input.value = cleanedValue;
                 showToast('⚠️ Invalid characters removed', true, 2000);
             }
         }
 
         function attachValidationListeners() {
-            document.querySelectorAll('.validate-ratio, .validate-gaps').forEach(input => { 
-                input.removeEventListener('input', handleInputFiltering); 
-                input.addEventListener('input', handleInputFiltering); 
+            document.querySelectorAll('.validate-ratio, .validate-gaps').forEach(input => {
+                input.removeEventListener('input', handleInputFiltering);
+                input.addEventListener('input', handleInputFiltering);
             });
-            document.querySelectorAll('input[name="ratios"]').forEach(input => { 
-                input.removeEventListener('input', updateFileName); 
-                input.addEventListener('input', updateFileName); 
+            document.querySelectorAll('input[name="ratios"]').forEach(input => {
+                input.removeEventListener('input', updateFileName);
+                input.addEventListener('input', updateFileName);
             });
         }
 
         function addPair(initialRatio = '', initialGaps = '') {
-            const pairDiv = document.createElement('div'); 
+            const pairDiv = document.createElement('div');
             pairDiv.className = 'row pair-row';
             pairDiv.innerHTML = `
                 <div class="col input-group">
@@ -1060,104 +1060,104 @@
                 <div class="col" style="flex:0 0 auto; align-self:center;">
                     <button type="button" class="remove-btn" onclick="removePair(this)">Remove</button>
                 </div>`;
-            
-            container.appendChild(pairDiv); 
+
+            container.appendChild(pairDiv);
             pairDiv.style.animation = 'fadeInDown 0.4s ease-out';
             pairDiv.querySelector('input[name="ratios"]').value = initialRatio;
             pairDiv.querySelector('input[name="gaps"]').value = initialGaps;
-            attachValidationListeners(); 
+            attachValidationListeners();
             updateFileName();
         }
 
-        function removePair(button) { 
-            if (container.children.length > 1) { 
-                const pairRow = button.closest('.pair-row'); 
-                pairRow.style.animation = 'fadeInDown 0.4s ease-out reverse'; 
-                setTimeout(() => { 
-                    pairRow.remove(); 
-                    updateFileName(); 
-                }, 400); 
-            } else { 
-                showToast("⚠️ You must have at least one Ratio/Gap pair.", true); 
-            } 
+        function removePair(button) {
+            if (container.children.length > 1) {
+                const pairRow = button.closest('.pair-row');
+                pairRow.style.animation = 'fadeInDown 0.4s ease-out reverse';
+                setTimeout(() => {
+                    pairRow.remove();
+                    updateFileName();
+                }, 400);
+            } else {
+                showToast("⚠️ You must have at least one Ratio/Gap pair.", true);
+            }
         }
 
-        function setExpiryToday() { 
-            document.getElementById('expiry').value = new Date().toISOString().split('T')[0]; 
+        function setExpiryToday() {
+            document.getElementById('expiry').value = new Date().toISOString().split('T')[0];
         }
 
         function updateStrikeFields() {
-            const script = scriptSelect.value; 
+            const script = scriptSelect.value;
             let ce = 24100, pe = 25400;
-            
+
             switch(script) {
                 case "BANKNIFTY": ce = 55300; pe = 55400; break;
                 case "SENSEX": ce = 80600; pe = 80500; break;
                 case "FINNIFTY": ce = 22100; pe = 22200; break;
-                case "MIDCAP": ce = 12100; pe = 12200; break;
+                case "MIDCPNIFTY": ce = 12100; pe = 12200; break;
             }
-            
-            document.getElementById('firstStrikeCE').value = ce; 
-            document.getElementById('firstStrikePE').value = pe; 
+
+            document.getElementById('firstStrikeCE').value = ce;
+            document.getElementById('firstStrikePE').value = pe;
             updateFileName();
             showToast(`📊 Strike values updated for ${script}`);
         }
 
-        function formatDate(date) { 
-            return date.toISOString().split('T')[0]; 
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
         }
 
-        function findNextDayOfWeek(dayIndex, date = new Date()) { 
-            const resultDate = new Date(date.getTime()); 
-            let daysToAdd = (dayIndex - date.getDay() + 7) % 7; 
-            if (daysToAdd === 0) { daysToAdd = 7; } 
-            resultDate.setDate(date.getDate() + daysToAdd); 
-            return resultDate; 
+        function findNextDayOfWeek(dayIndex, date = new Date()) {
+            const resultDate = new Date(date.getTime());
+            let daysToAdd = (dayIndex - date.getDay() + 7) % 7;
+            if (daysToAdd === 0) { daysToAdd = 7; }
+            resultDate.setDate(date.getDate() + daysToAdd);
+            return resultDate;
         }
 
-        function findLastDayOfMonth(dayIndex, date = new Date()) { 
-            let year = date.getFullYear(), month = date.getMonth(); 
-            let lastDayOfMonth = new Date(year, month + 1, 0); 
-            let dayOfWeek = lastDayOfMonth.getDay(); 
-            let daysToSubtract = (dayOfWeek - dayIndex + 7) % 7; 
-            let resultDate = new Date(year, month, lastDayOfMonth.getDate() - daysToSubtract); 
-            if (date > resultDate) { 
-                let nextMonthDate = new Date(year, month + 1, 15); 
-                return findLastDayOfMonth(dayIndex, nextMonthDate); 
-            } 
-            return resultDate; 
+        function findLastDayOfMonth(dayIndex, date = new Date()) {
+            let year = date.getFullYear(), month = date.getMonth();
+            let lastDayOfMonth = new Date(year, month + 1, 0);
+            let dayOfWeek = lastDayOfMonth.getDay();
+            let daysToSubtract = (dayOfWeek - dayIndex + 7) % 7;
+            let resultDate = new Date(year, month, lastDayOfMonth.getDate() - daysToSubtract);
+            if (date > resultDate) {
+                let nextMonthDate = new Date(year, month + 1, 15);
+                return findLastDayOfMonth(dayIndex, nextMonthDate);
+            }
+            return resultDate;
         }
 
         function setSmartExpiry(type) {
-            const script = scriptSelect.value; 
-            const expiryInput = document.getElementById('expiry'); 
+            const script = scriptSelect.value;
+            const expiryInput = document.getElementById('expiry');
             let expiryDate;
-            
+
             if (type === 'weekly') {
-                if (script === 'NIFTY' || script === 'BANKNIFTY') { 
+                if (script === 'NIFTY' || script === 'BANKNIFTY') {
                     expiryDate = findNextDayOfWeek(4); // Thursday
-                } 
-                else if (script === 'SENSEX') { 
+                }
+                else if (script === 'SENSEX') {
                     expiryDate = findNextDayOfWeek(5); // Friday
-                } 
-                else { 
-                    showToast(`⚠️ Weekly expiry is not available for ${script}.`, true); 
-                    return; 
+                }
+                else {
+                    showToast(`⚠️ Weekly expiry is not available for ${script}.`, true);
+                    return;
                 }
             } else if (type === 'monthly') {
-                if (['BANKNIFTY', 'MIDCAP', 'FINNIFTY', 'NIFTY'].includes(script)) { 
+                if (['BANKNIFTY', 'MIDCPNIFTY', 'FINNIFTY', 'NIFTY'].includes(script)) {
                     expiryDate = findLastDayOfMonth(4); // Last Thursday
-                } 
-                else if (script === 'SENSEX') { 
+                }
+                else if (script === 'SENSEX') {
                     expiryDate = findLastDayOfMonth(5); // Last Friday
-                } 
-                else { 
-                    showToast(`⚠️ Monthly expiry is not available for ${script}.`, true); 
-                    return; 
+                }
+                else {
+                    showToast(`⚠️ Monthly expiry is not available for ${script}.`, true);
+                    return;
                 }
             }
-            
-            if (expiryDate) { 
+
+            if (expiryDate) {
                 expiryInput.value = formatDate(expiryDate);
                 showToast(`📅 ${type.charAt(0).toUpperCase() + type.slice(1)} expiry set: ${formatDate(expiryDate)}`);
             }
@@ -1165,24 +1165,24 @@
 
         // === ENHANCED MARKET DATA FUNCTIONS ===
         function updateTicker() {
-            const tickerTrack = document.querySelector('.ticker-track'); 
+            const tickerTrack = document.querySelector('.ticker-track');
             if (!tickerTrack) return;
-            
+
             fetch('/ticker_data')
                 .then(res => res.json())
                 .then(apiResponse => {
                     if (!apiResponse.data || apiResponse.data.length === 0) {
                         loadFallbackTicker();
                         return;
-                    } 
-                    
+                    }
+
                     tickerTrack.innerHTML = '';
                     const allItems = [...apiResponse.data, ...apiResponse.data];
                     allItems.forEach(item => {
-                        const changeClass = item.change >= 0 ? 'up' : 'down'; 
+                        const changeClass = item.change >= 0 ? 'up' : 'down';
                         const sign = item.change >= 0 ? '+' : '';
                         const arrow = item.change >= 0 ? '📈' : '📉';
-                        
+
                         tickerTrack.innerHTML += `
                             <div class="ticker-item">
                                 <span class="idx-symbol">${item.symbol}</span>
@@ -1202,23 +1202,23 @@
         function loadFallbackTicker() {
             const tickerTrack = document.querySelector('.ticker-track');
             if (!tickerTrack) return;
-            
+
             const fallbackData = [
                 { symbol: 'NIFTY', value: 21456.75, change: 245.30, percent: 1.15 },
                 { symbol: 'SENSEX', value: 70865.12, change: 567.89, percent: 0.81 },
                 { symbol: 'BANKNIFTY', value: 44321.90, change: -123.45, percent: -0.28 },
                 { symbol: 'FINNIFTY', value: 19876.45, change: 87.23, percent: 0.44 },
-                { symbol: 'MIDCAP', value: 12543.78, change: -45.67, percent: -0.36 }
+                { symbol: 'MIDCPNIFTY', value: 12543.78, change: -45.67, percent: -0.36 }
             ];
-            
+
             tickerTrack.innerHTML = '';
             const allItems = [...fallbackData, ...fallbackData];
-            
+
             allItems.forEach(item => {
                 const changeClass = item.change >= 0 ? 'up' : 'down';
                 const sign = item.change >= 0 ? '+' : '';
                 const arrow = item.change >= 0 ? '📈' : '📉';
-                
+
                 tickerTrack.innerHTML += `
                     <div class="ticker-item">
                         <span class="idx-symbol">${item.symbol}</span>
@@ -1231,9 +1231,9 @@
         }
 
         function fetchMarketInsight() {
-            const insightElement = document.getElementById('insight-text'); 
+            const insightElement = document.getElementById('insight-text');
             if (!insightElement) return;
-            
+
             // Enhanced market insights with current theme awareness
             const insights = [
                 `📊 Market sentiment is ${currentTheme === 'dark' ? 'bullish in evening session' : 'positive in morning session'}`,
@@ -1242,13 +1242,13 @@
                 "⚠️ VIX levels suggest increased caution in derivative positions",
                 "💡 Sector rotation visible from IT to Banking and Auto stocks"
             ];
-            
+
             fetch('/market_insight')
                 .then(res => res.json())
-                .then(data => { 
-                    insightElement.textContent = data.insight; 
+                .then(data => {
+                    insightElement.textContent = data.insight;
                 })
-                .catch(err => { 
+                .catch(err => {
                     // Use fallback insight
                     const randomInsight = insights[Math.floor(Math.random() * insights.length)];
                     insightElement.textContent = randomInsight;
@@ -1257,14 +1257,14 @@
 
         // === ENHANCED CLOCK FUNCTION ===
         function updateClock() {
-            const clockContainer = document.getElementById('live-clock-container'); 
+            const clockContainer = document.getElementById('live-clock-container');
             if (!clockContainer) return;
-            
-            const now = new Date(); 
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
+
+            const now = new Date();
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
                 day: 'numeric',
                 timeZone: 'Asia/Kolkata'
             };
@@ -1275,23 +1275,23 @@
                 timeZone: 'Asia/Kolkata',
                 hour12: false
             };
-            
+
             const dateStr = now.toLocaleDateString('en-IN', options);
             const timeStr = now.toLocaleTimeString('en-IN', timeOptions);
-            
+
             // Theme-aware clock display
             const themeIcon = currentTheme === 'dark' ? '🌙' : '☀️';
             const sessionText = currentTheme === 'dark' ? 'Evening Session' : 'Day Session';
-            
+
             clockContainer.innerHTML = `
                 ${themeIcon} ${dateStr} | ${timeStr} IST (${sessionText})
             `;
         }
         // === ENHANCED EVENT LISTENERS ===
-        
+
         // Buy/Sell Pattern Enhancement
-        buySellPatternInput.addEventListener('input', function() { 
-            this.value = this.value.toUpperCase().replace(/[^BSbs.]/g, ''); 
+        buySellPatternInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase().replace(/[^BSbs.]/g, '');
             updateFileName();
         });
 
@@ -1317,11 +1317,11 @@
         // === ENHANCED FORM SUBMISSION ===
         strategyForm.addEventListener('submit', function(event) {
             event.preventDefault();
-            
+
             // Enhanced validation
             const ratios = document.querySelectorAll('input[name="ratios"]');
             const gaps = document.querySelectorAll('input[name="gaps"]');
-            
+
             if (ratios.length === 0 || gaps.length === 0) {
                 showToast('❌ Please add at least one ratio/gap pair', true);
                 return;
@@ -1335,7 +1335,7 @@
                     input.focus();
                 }
             });
-            
+
             gaps.forEach(input => {
                 if (!input.value.trim()) {
                     hasEmptyFields = true;
@@ -1347,59 +1347,59 @@
                 showToast('⚠️ Please fill all ratio and gap fields', true);
                 return;
             }
-            
+
             // Enhanced loading state
-            loader.style.display = 'block'; 
-            generateBtn.classList.add('loading'); 
-            generateBtn.disabled = true; 
+            loader.style.display = 'block';
+            generateBtn.classList.add('loading');
+            generateBtn.disabled = true;
             generateBtn.textContent = 'Generating...';
-            
+
             // Progress feedback
             showToast('📊 Processing your strategy...', false, 2000);
-            
+
             setTimeout(() => {
                 showToast('⚙️ Building CSV structure...', false, 2000);
             }, 1000);
-            
-            fetch('/generate', { 
-                method: 'POST', 
-                body: new FormData(strategyForm) 
+
+            fetch('/generate', {
+                method: 'POST',
+                body: new FormData(strategyForm)
             })
-            .then(response => { 
-                if (!response.ok) { 
-                    return response.text().then(text => { 
-                        throw new Error(text || `Server error: ${response.status}`) 
-                    }); 
-                } 
-                return response.blob(); 
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || `Server error: ${response.status}`)
+                    });
+                }
+                return response.blob();
             })
             .then(blob => {
-                const a = document.createElement('a'); 
+                const a = document.createElement('a');
                 a.href = window.URL.createObjectURL(blob);
-                a.download = document.getElementById('fileName').value; 
-                document.body.appendChild(a); 
+                a.download = document.getElementById('fileName').value;
+                document.body.appendChild(a);
                 a.click();
-                window.URL.revokeObjectURL(a.href); 
+                window.URL.revokeObjectURL(a.href);
                 document.body.removeChild(a);
-                
+
                 showToast('🎉 CSV file downloaded successfully! Check your downloads folder.', false, 5000);
             })
             .catch(err => {
                 console.error('Generate error:', err);
                 showToast('❌ Error generating file: ' + err.message, true, 6000);
             })
-            .finally(() => { 
-                loader.style.display = 'none'; 
-                generateBtn.classList.remove('loading'); 
-                generateBtn.disabled = false; 
-                generateBtn.textContent = 'Download CSV'; 
+            .finally(() => {
+                loader.style.display = 'none';
+                generateBtn.classList.remove('loading');
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Download CSV';
             });
         });
 
         // === ENHANCED STRATEGY SAVE SYSTEM ===
-        document.getElementById('saveStrategyBtn').addEventListener('click', () => { 
+        document.getElementById('saveStrategyBtn').addEventListener('click', () => {
             const strategyName = document.getElementById('strategyName').value.trim();
-            
+
             if (!strategyName) {
                 showToast('⚠️ Please enter a strategy name to save', true);
                 document.getElementById('strategyName').focus();
@@ -1408,7 +1408,7 @@
 
             const ratios = Array.from(document.querySelectorAll('input[name="ratios"]')).map(input => input.value);
             const gaps = Array.from(document.querySelectorAll('input[name="gaps"]')).map(input => input.value);
-            
+
             // Validate that we have data to save
             if (ratios.length === 0 || gaps.length === 0) {
                 showToast('❌ No strategy data to save. Please add ratio/gap pairs first.', true);
@@ -1430,19 +1430,19 @@
                 timestamp: new Date().toISOString(),
                 theme: currentTheme
             };
-            
+
             // Save to localStorage
             try {
                 const savedStrategies = JSON.parse(localStorage.getItem('savedStrategies') || '[]');
                 savedStrategies.push(strategyData);
                 localStorage.setItem('savedStrategies', JSON.stringify(savedStrategies));
-                
-                showToast(`💾 Strategy "${strategyName}" saved successfully!`, false, 4000); 
+
+                showToast(`💾 Strategy "${strategyName}" saved successfully!`, false, 4000);
                 document.getElementById('strategyName').value = '';
-                
+
                 // Update counter if exists
                 updateSavedStrategiesCount();
-                
+
             } catch (error) {
                 showToast('❌ Error saving strategy. Please try again.', true);
                 console.error('Save strategy error:', error);
@@ -1457,33 +1457,33 @@
                 generateBtn.click();
                 showToast('⌨️ CSV generation triggered via keyboard shortcut!');
             }
-            
+
             // Ctrl+S to save strategy
             if (event.ctrlKey && event.key === 's') {
                 event.preventDefault();
                 document.getElementById('saveStrategyBtn').click();
             }
-            
+
             // Ctrl+T to toggle theme
             if (event.ctrlKey && event.key === 't') {
                 event.preventDefault();
                 toggleTheme();
             }
-            
+
             // Ctrl+V to toggle voice
             if (event.ctrlKey && event.key === 'v') {
                 event.preventDefault();
                 toggleVoiceListening();
                 showToast('⌨️ Voice assistant toggled via keyboard!');
             }
-            
+
             // Ctrl+Plus to add pair
             if (event.ctrlKey && (event.key === '=' || event.key === '+')) {
                 event.preventDefault();
                 addPair();
                 showToast('⌨️ New pair added via keyboard shortcut!');
             }
-            
+
             // Ctrl+H for help
             if (event.ctrlKey && event.key === 'h') {
                 event.preventDefault();
@@ -1498,12 +1498,12 @@
         });
 
         // === ENHANCED UTILITY FUNCTIONS ===
-        
+
         function updateSavedStrategiesCount() {
             try {
                 const savedStrategies = JSON.parse(localStorage.getItem('savedStrategies') || '[]');
                 const count = savedStrategies.length;
-                
+
                 // Update count display if element exists
                 const countElement = document.querySelector('.strategy-count');
                 if (countElement) {
@@ -1517,7 +1517,7 @@
         function showHelpDialog() {
             const helpContent = `
                 🎤 VOICE COMMANDS:
-                • "Select NIFTY/BANKNIFTY/SENSEX/FINNIFTY/MIDCAP"
+                • "Select NIFTY/BANKNIFTY/SENSEX/FINNIFTY/MIDCPNIFTY"
                 • "Add pair" - Add new ratio/gap pair
                 • "Weekly expiry" / "Monthly expiry"
                 • "Sell buy sell pattern" / "Buy sell buy pattern"
@@ -1526,7 +1526,7 @@
                 • "Switch theme" / "Toggle theme"
                 • "Show advanced"
                 • "Help" - Show this help
-                
+
                 ⌨️ KEYBOARD SHORTCUTS:
                 • Ctrl+Enter - Generate CSV
                 • Ctrl+S - Save Strategy
@@ -1536,7 +1536,7 @@
                 • Ctrl+H - Show Help
                 • Escape - Stop Voice Listening
             `;
-            
+
             showToast(helpContent, false, 12000);
         }
 
@@ -1554,7 +1554,7 @@
                 const recentStrategy = localStorage.getItem('recentStrategy');
                 if (recentStrategy) {
                     const strategy = JSON.parse(recentStrategy);
-                    
+
                     // Load basic fields
                     if (strategy.script) scriptSelect.value = strategy.script;
                     if (strategy.buySellPattern) buySellPatternInput.value = strategy.buySellPattern;
@@ -1564,7 +1564,7 @@
                     if (strategy.strikeStep) document.getElementById('strikeStep').value = strategy.strikeStep;
                     if (strategy.totStrikes) document.getElementById('totStrikes').value = strategy.totStrikes;
                     if (strategy.mode) document.getElementById('mode').value = strategy.mode;
-                    
+
                     showToast('📋 Recent strategy data loaded!', false, 3000);
                 }
             } catch (error) {
@@ -1585,7 +1585,7 @@
                     mode: document.getElementById('mode').value,
                     timestamp: new Date().toISOString()
                 };
-                
+
                 localStorage.setItem('recentStrategy', JSON.stringify(currentStrategy));
             } catch (error) {
                 console.error('Error saving current strategy:', error);
@@ -1595,7 +1595,7 @@
         // === AUTO-SAVE FUNCTIONALITY ===
         function setupAutoSave() {
             const fieldsToWatch = [
-                scriptSelect, buySellPatternInput, 
+                scriptSelect, buySellPatternInput,
                 document.getElementById('expiry'),
                 document.getElementById('firstStrikeCE'),
                 document.getElementById('firstStrikePE'),
@@ -1637,11 +1637,11 @@
         window.addEventListener('beforeunload', function() {
             // Save current state
             saveCurrentStrategy();
-            
+
             // Clear intervals
             if (tickerInterval) clearInterval(tickerInterval);
             if (clockInterval) clearInterval(clockInterval);
-            
+
             // Stop voice recognition
             if (isVoiceListening && voiceRecognition) {
                 voiceRecognition.stop();
@@ -1652,54 +1652,54 @@
         window.addEventListener('DOMContentLoaded', function() {
             // Load saved theme first
             loadSavedTheme();
-            
+
             // Initialize voice recognition
             initializeVoiceRecognition();
-            
+
             // Load recent strategy if available
             loadRecentStrategy();
-            
+
             // Setup auto-save
             setupAutoSave();
-            
+
             // Update strategies count
             updateSavedStrategiesCount();
-            
+
             console.log('🎉 Enhanced Options Strategy Dashboard - DOM Ready!');
         });
 
         // === MAIN INITIALIZATION ===
         window.addEventListener('load', function() {
             // Original initialization
-            setExpiryToday(); 
-            updateStrikeFields(); 
-            addPair(); 
-            updateTicker(); 
-            fetchMarketInsight(); 
+            setExpiryToday();
+            updateStrikeFields();
+            addPair();
+            updateTicker();
+            fetchMarketInsight();
             updateClock();
-            
+
             // Set up intervals
             tickerInterval = setInterval(updateTicker, 120000); // 2 minutes
             clockInterval = setInterval(updateClock, 1000); // 1 second
-            
+
             // Welcome messages with delay
             setTimeout(() => {
                 showToast('🚀 Enhanced Options Strategy Dashboard Loaded!', false, 4000);
             }, 1000);
-            
+
             setTimeout(() => {
                 const themeMsg = currentTheme === 'dark' ? '🌙 Dark theme active' : '☀️ Light theme active';
                 showToast(`${themeMsg} - Toggle anytime with theme button or Ctrl+T`, false, 5000);
             }, 3000);
-            
+
             setTimeout(() => {
                 showToast('🎤 Voice commands ready! Click mic button or press Ctrl+V to start. Say "Help" for commands.', false, 6000);
             }, 5000);
-            
+
             setTimeout(() => {
                 showToast('💡 Keyboard shortcuts: Ctrl+Enter (Generate), Ctrl+S (Save), Ctrl+H (Help)', false, 6000);
             }, 7000);
-            
+
             console.log('🎉 Enhanced Options Strategy Dashboard - Fully Loaded!');
             console.log('✅ Theme System:', currentTheme);
             console.log('✅ Voice Recognition:', voiceRecognition ? 'Available' : 'Not Available');
@@ -1714,10 +1714,10 @@
                 setTimeout(() => {
                     const perfData = performance.getEntriesByType('navigation')[0];
                     const loadTime = Math.round(perfData.loadEventEnd - perfData.loadEventStart);
-                    
+
                     if (loadTime > 0) {
                         console.log(`⚡ Page loaded in ${loadTime}ms`);
-                        
+
                         if (loadTime > 3000) {
                             showToast('⚠️ Slow loading detected. Consider refreshing for better performance.', true, 4000);
                         }
