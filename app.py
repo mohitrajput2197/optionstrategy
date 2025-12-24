@@ -1,4 +1,3 @@
-
 import os
 import io
 import json
@@ -39,7 +38,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
-last_analysis_result = db.Column(db.Text)
+    last_analysis_result = db.Column(db.Text)
 
 class SavedStrategy(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -58,8 +57,6 @@ class TradeJournal(db.Model):
     strategy_details_json = db.Column(db.Text, nullable=False)
     entry_date = db.Column(db.DateTime, default=datetime.utcnow)
     notes = db.Column(db.Text); final_pnl = db.Column(db.Float)
-
-
 
 # --- Admin Panel ---
 class MyAdminIndexView(AdminIndexView):
@@ -89,14 +86,12 @@ with app.app_context():
 def fromjson_filter(value):
     return json.loads(value)
 
-
 # --- Main Routes ---
 @app.route('/')
 def index():
     if not session.get("logged_in"): return redirect('/login')
     return render_template('dashboard.html', username=session.get("username"), is_admin=session.get('is_admin', False))
 
-# (All other routes for login, register, history, etc. are here and unchanged)
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -122,7 +117,7 @@ def register():
 @app.route("/logout", methods=["POST"])
 def logout():
     session.clear(); flash('You have been successfully logged out.', 'success'); return redirect("/login")
-    
+
 # --- Feature Routes ---
 @app.route('/history')
 def history():
@@ -228,7 +223,7 @@ def ticker_data():
 @app.route('/generate', methods=['POST'])
 def generate():
     if not session.get("logged_in"): return redirect("/login")
-        
+
     def get_int_from_form(field_name, default_value):
         value = request.form.get(field_name, str(default_value)); return int(value) if value and value.isdigit() else default_value
     def get_str_from_form(field_name, default_value):
@@ -238,7 +233,7 @@ def generate():
     ratios_list = request.form.getlist('ratios')
     gaps_list_str = request.form.getlist('gaps')
     use_individual_gaps_list = request.form.getlist('use_individual_gaps')
-    
+
     parsed_pairs = []
     for i, (ratio_str, gap_str) in enumerate(zip(ratios_list, gaps_list_str)):
         use_individual = (i < len(use_individual_gaps_list) and use_individual_gaps_list[i] == 'on')
@@ -250,7 +245,7 @@ def generate():
     totStrikes = get_int_from_form('totStrikes', 10)
     buySellPattern=request.form.get('buySellPattern','S.B.S').upper()
     fileName=request.form.get('fileName')or f"{script}-strategy.csv";mode=request.form.get('mode','8184')
-    
+
     # --- Advanced Parameters Logic ---
     use_advanced_csv = request.form.get('use_advanced_csv') == 'on'
     adv_bsoq = get_str_from_form('bsoq', '0') if use_advanced_csv else '0'
@@ -259,21 +254,25 @@ def generate():
     adv_sprice = get_str_from_form('sprice', '0') if use_advanced_csv else '0'
     adv_sqty = get_str_from_form('sqty', '0') if use_advanced_csv else '0'
     adv_ssoq = get_str_from_form('ssoq', '0') if use_advanced_csv else '0'
-    
+
     # --- Your original CSV logic ---
     csv_script = 'BSX' if script == 'SENSEX' else script
     lot_per_script = 75
     if script == "BANKNIFTY": lot_per_script = 35
     elif script == "SENSEX": lot_per_script = 20
-    elif script == "MIDCAP": lot_per_script = 140
+    elif script == "MIDFNIFTY": lot_per_script = 140
     elif script == "FINNIFTY": lot_per_script = 65
     def formatExpiry(dateStr):
         if not dateStr:return ""
         try:d=datetime.strptime(dateStr,'%Y-%m-%d'); months=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]; return f"{d.day:02d}-{months[d.month-1]}-{d.year}"
         except Exception:return ""
-    def getStgCode(ratioStr,mode):
+    def getStgCode(ratioStr,mode,script):
         count=len(ratioStr.split('.'));
-        if mode=="IOC":return 210
+        if mode=="IOC":
+            if script == "NIFTY":
+                return 310
+            else:
+                return 210
         if count==2:return 10201
         if count==3:return 10301
         if count==4:return 10401
@@ -281,7 +280,7 @@ def generate():
     expiry=formatExpiry(expiry_raw)
     headerLine = "#PID,cost,bcmp,scmp,flp,stgcode,script,lotsize,itype,expiry,otype,stkprice,ratio,buysell,pnAdd,pnMulti,bsoq,bqty,bprice,sprice,sqty,ssoq,btrQty,strQty,gap,ticksize,orderDepth,priceDepth,thshqty,allowedBiddth,allowedSlippage,tradeGear,shortflag,isBidding,marketOrderRetries,marketOrLimitOrder,isBestbid,unhedgedActionType,TERActionType,BidWaitingType,param2,param3,param4,param5,param6,param7,param01,param02,param03,param04,param05,param06,param07,param08,param09,param10,param11,param12,param13,param14,param15,param16,param17,param18,param19,param20,param21,param22,param23,param24,param25,param26,param27,param28,param29,param30,param31,param32,param33,param34,param35,param36,param3-7,param38,param39,param40,param301,param302,param303,param304,param305,param306,param307,param308,param309,param310,param311,param312,param313,param314,param315,param316,param317,param318,param319,param320,param321,param322,param323,param324,param325,param326,param327,param328,param329,param330,param331,param332,param333,param334,param335,param336,param337,param338,param339,param340"
     headers = headerLine.split(","); rows = [headerLine]; pid = 1; baseParts = buySellPattern.split('.'); baseCount = len(baseParts)
-    
+
     for pair in parsed_pairs:
         ratio_str = pair['ratio']; gap_str = pair['gaps']; use_individual = pair['individual']
         if not ratio_str.strip() or not gap_str.strip(): continue
@@ -289,9 +288,9 @@ def generate():
         all_gaps_to_iterate = [int(g.strip()) for g in gap_str.split(',') if g.strip().isdigit()]
         if not all_gaps_to_iterate: continue
 
-        legCount = len(ratio_str.split('.')); stgCode = getStgCode(ratio_str, mode); current_lotSize = "|".join([str(lot_per_script)] * legCount) if mode == "7155" else str(lot_per_script)
+        legCount = len(ratio_str.split('.')); stgCode = getStgCode(ratio_str, mode, script); current_lotSize = "|".join([str(lot_per_script)] * legCount) if mode == "7155" else str(lot_per_script)
         buySellStr = '.'.join([baseParts[i % baseCount] for i in range(legCount)])
-        
+
         for gap in all_gaps_to_iterate:
             for i in range(totStrikes):
                 if use_individual: # This logic now only applies to how strikes are calculated, not the loop
@@ -303,7 +302,7 @@ def generate():
                         current_ce_strike += gap_to_add; ce_prices.append(current_ce_strike)
                 else: # Old logic uses the single current gap for all legs
                     ce_prices = [firstStrikeCE + i * strikeStep + j * gap for j in range(legCount)]
-                
+
                 row_ce = ['0'] * len(headers); row_ce[0] = str(pid); pid += 1; row_ce[5]=str(stgCode); row_ce[6]=csv_script; row_ce[7]=current_lotSize; row_ce[8]='-'.join(['OPTIDX']*legCount); row_ce[9]='|'.join([expiry]*legCount); row_ce[10]='|'.join(['CE']*legCount); row_ce[11]='|'.join(map(str, ce_prices)); row_ce[12]=ratio_str; row_ce[13]=buySellStr; row_ce[24]=str(gap)
                 row_ce[16]=adv_bsoq; row_ce[17]=adv_bqty; row_ce[18]=str(int(float(adv_bprice)) * 100) if adv_bprice != '0' else '0'; row_ce[19]=str(int(float(adv_sprice)) * 100) if adv_sprice != '0' else '0'; row_ce[20]=adv_sqty; row_ce[21]=adv_ssoq
                 row_ce[15]='1'; row_ce[25]='10'; row_ce[26]='2'; row_ce[27]='2'; row_ce[29]='5'; row_ce[30]='50' if mode=="IOC" else '200'; row_ce[31]='2'; row_ce[32]='1'; row_ce[33]='FALSE' if mode=="IOC" else 'TRUE'; row_ce[34]='5'; row_ce[37]='2'; row_ce[38]='1'; row_ce[39]='500'; row_ce[46]='60'; row_ce[47]='50' if mode=="IOC" else '800'; row_ce[50]='100'; row_ce[51]='200'; row_ce[52]='2575'; row_ce[53]='60'; row_ce[54]='100'; row_ce[55]='200'; row_ce[56]='100'; row_ce[57]='100'; row_ce[58]='10'; row_ce[60]='1'; row_ce[64]='1999'; row_ce[66]='30'; row_ce[68]='10'; row_ce[86]='101'; row_ce[28]='80' if mode=="IOC" else '0'
@@ -324,12 +323,10 @@ def generate():
                 row_pe[16]=adv_bsoq; row_pe[17]=adv_bqty; row_pe[18]=str(int(float(adv_bprice)) * 100) if adv_bprice != '0' else '0'; row_pe[19]=str(int(float(adv_sprice)) * 100) if adv_sprice != '0' else '0'; row_pe[20]=adv_sqty; row_pe[21]=adv_ssoq
                 row_pe[15]='1'; row_pe[25]='10'; row_pe[26]='2'; row_pe[27]='2'; row_pe[29]='5'; row_pe[30]='50' if mode=="IOC" else '200'; row_pe[31]='2'; row_pe[32]='1'; row_pe[33]='FALSE' if mode=="IOC" else 'TRUE'; row_pe[34]='5'; row_pe[37]='2'; row_pe[38]='1'; row_pe[39]='500'; row_pe[46]='60'; row_pe[47]='50' if mode=="IOC" else '800'; row_pe[50]='100'; row_pe[51]='200'; row_pe[52]='2575'; row_pe[53]='60'; row_pe[54]='100'; row_pe[55]='200'; row_pe[56]='100'; row_pe[57]='100'; row_pe[58]='10'; row_pe[60]='1'; row_pe[64]='1999'; row_pe[66]='30'; row_pe[68]='10'; row_pe[86]='101'; row_pe[28]='80' if mode=="IOC" else '0'
                 rows.append(','.join(row_pe))
-            
+
             # If using individual gaps, we only want to process the list of gaps once
             if use_individual:
-                break 
-            
-            
+                break
 
     csv_content = '\n'.join(rows)
     output = io.StringIO(csv_content); output.seek(0)
@@ -337,4 +334,3 @@ def generate():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
