@@ -257,11 +257,11 @@ def generate():
 
     # --- Your original CSV logic ---
     csv_script = 'BSX' if script == 'SENSEX' else script
-    lot_per_script = 75
-    if script == "BANKNIFTY": lot_per_script = 35
+    lot_per_script = 65
+    if script == "BANKNIFTY": lot_per_script = 30
     elif script == "SENSEX": lot_per_script = 20
-    elif script == "MIDFNIFTY": lot_per_script = 140
-    elif script == "FINNIFTY": lot_per_script = 65
+    elif script == "MIDFNIFTY": lot_per_script = 120
+    elif script == "FINNIFTY": lot_per_script = 60
     def formatExpiry(dateStr):
         if not dateStr:return ""
         try:d=datetime.strptime(dateStr,'%Y-%m-%d'); months=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]; return f"{d.day:02d}-{months[d.month-1]}-{d.year}"
