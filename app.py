@@ -269,10 +269,7 @@ def generate():
     def getStgCode(ratioStr,mode,script):
         count=len(ratioStr.split('.'));
         if mode=="IOC":
-            if script == "NIFTY":
-                return 310
-            else:
-                return 210
+            return 210
         if count==2:return 10201
         if count==3:return 10301
         if count==4:return 10401
@@ -288,7 +285,7 @@ def generate():
         all_gaps_to_iterate = [int(g.strip()) for g in gap_str.split(',') if g.strip().isdigit()]
         if not all_gaps_to_iterate: continue
 
-        legCount = len(ratio_str.split('.')); stgCode = getStgCode(ratio_str, mode, script); current_lotSize = "|".join([str(lot_per_script)] * legCount) if mode == "7155" else str(lot_per_script)
+        legCount = len(ratio_str.split('.')); stgCode = getStgCode(ratio_str, mode, script); current_lotSize = "|".join([str(lot_per_script)] * legCount) if mode in ["7155", "IOC"] else str(lot_per_script)
         buySellStr = '.'.join([baseParts[i % baseCount] for i in range(legCount)])
 
         for gap in all_gaps_to_iterate:
