@@ -269,6 +269,9 @@ def generate():
     def getStgCode(ratioStr,mode,script):
         count=len(ratioStr.split('.'));
         if mode=="IOC":
+            if count==2:return 210
+            if count==3:return 310
+            if count==4:return 410
             return 210
         if count==2:return 10201
         if count==3:return 10301
