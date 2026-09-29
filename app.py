@@ -22,15 +22,17 @@ INVITATION_CODE = os.environ.get("INVITATION_CODE", "BIJNOR24")
 # --- Database Configuration (Works on Heroku and Local) ---
 database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith("postgres://"):
-     # Heroku's URL ko SQLAlchemy ke liye theek karna
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 basedir = os.path.abspath(os.path.dirname(__file__))
-   # Agar Heroku par hai, to PostgreSQL use karega, warna local computer par SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///' + os.path.join(basedir, 'users.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['BABEL_DEFAULT_LOCALE'] = 'en'
 babel = Babel(app)
 db = SQLAlchemy(app)
+
+# Helper function: Default 30-day subscription from registration
+def get_default_subscription():
+    return datetime.utcnow() + timedelta(days=30)
 
 # --- Database Models ---
 class User(db.Model):
@@ -38,6 +40,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    subscription_end = db.Column(db.DateTime, nullable=True, default=get_default_subscription)
     last_analysis_result = db.Column(db.Text)
 
 class SavedStrategy(db.Model):
@@ -66,8 +69,8 @@ class MyAdminIndexView(AdminIndexView):
         return redirect('/login')
 
 class SecureModelView(ModelView):
-    column_list = ['username', 'is_admin']
-    form_columns = ['username', 'password', 'is_admin']
+    column_list = ['username', 'is_admin', 'subscription_end']
+    form_columns = ['username', 'password', 'is_admin', 'subscription_end']
     form_overrides = { 'password': PasswordField }
     def on_model_change(self, form, model, is_created):
         if form.password.data: model.password = generate_password_hash(form.password.data)
@@ -86,6 +89,26 @@ with app.app_context():
 def fromjson_filter(value):
     return json.loads(value)
 
+# --- Global Subscription Guard ---
+@app.before_request
+def check_user_subscription():
+    exempt_endpoints = {'login', 'register', 'logout', 'static', 'admin.index'}
+    if request.endpoint and (request.endpoint in exempt_endpoints or request.endpoint.startswith('admin.')):
+        return None
+
+    if session.get("logged_in") and not session.get("is_admin"):
+        user = User.query.filter_by(username=session.get('username')).first()
+        if not user:
+            session.clear()
+            return redirect('/login')
+
+        if not user.subscription_end or user.subscription_end < datetime.utcnow():
+            session.clear()
+            flash('Your subscription has expired. Please contact admin to renew access.', 'error')
+            if request.is_json:
+                return jsonify({"status": "error", "message": "Subscription expired."}), 403
+            return redirect('/login')
+
 # --- Main Routes ---
 @app.route('/')
 def index():
@@ -97,26 +120,46 @@ def login():
     if request.method == 'POST':
         user = User.query.filter_by(username=request.form.get("username")).first()
         if user and check_password_hash(user.password, request.form.get("password")):
-            session["logged_in"]=True; session["username"]=user.username; session["is_admin"]=user.is_admin
+            if not user.is_admin and (not user.subscription_end or user.subscription_end < datetime.utcnow()):
+                flash('Your account subscription has expired. Please contact admin.', 'error')
+                return redirect('/login')
+            
+            session["logged_in"] = True
+            session["username"] = user.username
+            session["is_admin"] = user.is_admin
             return redirect('/')
-        else: flash('Invalid username or password.', 'error')
+        else:
+            flash('Invalid username or password.', 'error')
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         if request.form.get('invitation_code') != INVITATION_CODE:
-            flash('Invalid Invitation Code.', 'error'); return redirect('/register')
+            flash('Invalid Invitation Code.', 'error')
+            return redirect('/register')
         if User.query.filter_by(username=request.form.get('username')).first():
-            flash('That username is already taken.', 'error'); return redirect('/register')
-        new_user = User(username=request.form.get('username'), password=generate_password_hash(request.form.get('password')), is_admin=False)
-        db.session.add(new_user); db.session.commit()
-        flash('Registration successful! You can now log in.', 'success'); return redirect('/login')
+            flash('That username is already taken.', 'error')
+            return redirect('/register')
+        
+        # New users get 30 days active subscription automatically
+        new_user = User(
+            username=request.form.get('username'),
+            password=generate_password_hash(request.form.get('password')),
+            is_admin=False,
+            subscription_end=datetime.utcnow() + timedelta(days=30)
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Registration successful! Your 30-day access is active. You can now log in.', 'success')
+        return redirect('/login')
     return render_template('register.html')
 
 @app.route("/logout", methods=["POST"])
 def logout():
-    session.clear(); flash('You have been successfully logged out.', 'success'); return redirect("/login")
+    session.clear()
+    flash('You have been successfully logged out.', 'success')
+    return redirect("/login")
 
 # --- Feature Routes ---
 @app.route('/history')
@@ -129,7 +172,8 @@ def history():
 @app.route('/save_strategy', methods=['POST'])
 def save_strategy():
     if not session.get("logged_in"): return jsonify({"status": "error"}), 401
-    data = request.json; user = User.query.filter_by(username=session['username']).first()
+    data = request.json
+    user = User.query.filter_by(username=session['username']).first()
     new_strategy = SavedStrategy(strategy_name=data.get('strategy_name','Unnamed'), user_id=user.id, script=data.get('script'),
                                 expiry=data.get('expiry'), firstStrikeCE=data.get('firstStrikeCE'), firstStrikePE=data.get('firstStrikePE'),
                                 strikeStep=data.get('strikeStep'), totStrikes=data.get('totStrikes'), buySellPattern=data.get('buySellPattern'),
@@ -293,14 +337,14 @@ def generate():
 
         for gap in all_gaps_to_iterate:
             for i in range(totStrikes):
-                if use_individual: # This logic now only applies to how strikes are calculated, not the loop
+                if use_individual:
                     leg_gaps = all_gaps_to_iterate
                     current_ce_strike = firstStrikeCE + (i * strikeStep)
                     ce_prices = [current_ce_strike]
                     for j in range(legCount - 1):
                         gap_to_add = leg_gaps[j] if j < len(leg_gaps) else leg_gaps[-1]
                         current_ce_strike += gap_to_add; ce_prices.append(current_ce_strike)
-                else: # Old logic uses the single current gap for all legs
+                else:
                     ce_prices = [firstStrikeCE + i * strikeStep + j * gap for j in range(legCount)]
 
                 row_ce = ['0'] * len(headers); row_ce[0] = str(pid); pid += 1; row_ce[5]=str(stgCode); row_ce[6]=csv_script; row_ce[7]=current_lotSize; row_ce[8]='-'.join(['OPTIDX']*legCount); row_ce[9]='|'.join([expiry]*legCount); row_ce[10]='|'.join(['CE']*legCount); row_ce[11]='|'.join(map(str, ce_prices)); row_ce[12]=ratio_str; row_ce[13]=buySellStr; row_ce[24]=str(gap)
@@ -324,7 +368,6 @@ def generate():
                 row_pe[15]='1'; row_pe[25]='10'; row_pe[26]='2'; row_pe[27]='2'; row_pe[29]='5'; row_pe[30]='50' if mode=="IOC" else '200'; row_pe[31]='2'; row_pe[32]='1'; row_pe[33]='FALSE' if mode=="IOC" else 'TRUE'; row_pe[34]='5'; row_pe[37]='2'; row_pe[38]='1'; row_pe[39]='500'; row_pe[46]='60'; row_pe[47]='50' if mode=="IOC" else '800'; row_pe[50]='100'; row_pe[51]='200'; row_pe[52]='2575'; row_pe[53]='60'; row_pe[54]='100'; row_pe[55]='200'; row_pe[56]='100'; row_pe[57]='100'; row_pe[58]='10'; row_pe[60]='1'; row_pe[64]='1999'; row_pe[66]='30'; row_pe[68]='10'; row_pe[86]='101'; row_pe[28]='80' if mode=="IOC" else '0'
                 rows.append(','.join(row_pe))
 
-            # If using individual gaps, we only want to process the list of gaps once
             if use_individual:
                 break
 
