@@ -316,7 +316,7 @@ def ticker_data():
         except Exception as e: print(f"Error fetching {api_symbol} from yfinance: {e}")
     return jsonify({"data": ticker_results})
 
-# --- CSV GENERATE FUNCTION (7155 + PIPE LOGIC INTEGRATED) ---
+# --- CSV GENERATE FUNCTION ---
 @app.route('/generate', methods=['POST'])
 def generate():
     if not session.get("logged_in"): return redirect("/login")
@@ -327,6 +327,16 @@ def generate():
     def get_str_from_form(field_name, default_value):
         value = request.form.get(field_name)
         return value if value and value.strip() else str(default_value)
+
+    # Safe price parser: converts both whole numbers (360 -> 36000) and decimals (0.10 -> 10)
+    def parse_convex_price(price_str):
+        if not price_str or price_str.strip() in ['0', '']:
+            return '0'
+        try:
+            val = float(price_str.strip())
+            return str(int(round(val * 100)))
+        except (ValueError, TypeError):
+            return '0'
 
     # --- Standard form fields ---
     ratios_list = request.form.getlist('ratios')
@@ -352,8 +362,11 @@ def generate():
     use_advanced_csv = request.form.get('use_advanced_csv') == 'on'
     adv_bsoq = get_str_from_form('bsoq', '0') if use_advanced_csv else '0'
     adv_bqty = get_str_from_form('bqty', '0') if use_advanced_csv else '0'
-    adv_bprice = get_str_from_form('bprice', '0') if use_advanced_csv else '0'
-    adv_sprice = get_str_from_form('sprice', '0') if use_advanced_csv else '0'
+    
+    # 360 -> 36000, 0.10 -> 10, 0.05 -> 5
+    adv_bprice_converted = parse_convex_price(request.form.get('bprice')) if use_advanced_csv else '0'
+    adv_sprice_converted = parse_convex_price(request.form.get('sprice')) if use_advanced_csv else '0'
+    
     adv_sqty = get_str_from_form('sqty', '0') if use_advanced_csv else '0'
     adv_ssoq = get_str_from_form('ssoq', '0') if use_advanced_csv else '0'
 
@@ -381,7 +394,6 @@ def generate():
             if count == 3: return 310
             if count == 4: return 410
             return 210
-        # 8184, 7155 aur PIPE mode me standard 10201/10301/10401 code
         if count == 2: return 10201
         if count == 3: return 10301
         if count == 4: return 10401
@@ -402,7 +414,6 @@ def generate():
         if not ratio_str.strip() or not gap_str.strip(): 
             continue
 
-        # PIPE mode ke liye ratio '.' se '|' replace hoga
         if mode == "PIPE":
             export_ratio_str = ratio_str.strip().replace('.', '|')
         else:
@@ -415,7 +426,6 @@ def generate():
         legCount = len(ratio_str.split('.'))
         stgCode = getStgCode(ratio_str, mode, script)
 
-        # 7155, IOC ke sath PIPE mode bhi multiple lotsize '65|65' lega (Exact 7155 style)
         if mode in ["7155", "IOC", "PIPE"]:
             current_lotSize = "|".join([str(lot_per_script)] * legCount)
         else:
@@ -441,15 +451,13 @@ def generate():
                 row_ce[5] = str(stgCode); row_ce[6] = csv_script; row_ce[7] = current_lotSize
                 row_ce[8] = '-'.join(['OPTIDX'] * legCount); row_ce[9] = '|'.join([expiry] * legCount)
                 row_ce[10] = '|'.join(['CE'] * legCount); row_ce[11] = '|'.join(map(str, ce_prices))
-                row_ce[12] = export_ratio_str  # Ratio with '|'
+                row_ce[12] = export_ratio_str
                 row_ce[13] = buySellStr; row_ce[24] = str(gap)
                 row_ce[16] = adv_bsoq; row_ce[17] = adv_bqty
-                row_ce[18] = str(int(float(adv_bprice)) * 100) if adv_bprice != '0' else '0'
-                row_ce[19] = str(int(float(adv_sprice)) * 100) if adv_sprice != '0' else '0'
+                row_ce[18] = adv_bprice_converted
+                row_ce[19] = adv_sprice_converted
                 row_ce[20] = adv_sqty; row_ce[21] = adv_ssoq
                 row_ce[15] = '1'; row_ce[25] = '10'; row_ce[26] = '2'; row_ce[27] = '2'; row_ce[29] = '5'
-                
-                # 7155 & PIPE mode settings:
                 row_ce[30] = '50' if mode == "IOC" else '200'
                 row_ce[31] = '2'; row_ce[32] = '1'
                 row_ce[33] = 'FALSE' if mode == "IOC" else 'TRUE'
@@ -478,15 +486,13 @@ def generate():
                 row_pe[5] = str(stgCode); row_pe[6] = csv_script; row_pe[7] = current_lotSize
                 row_pe[8] = '-'.join(['OPTIDX'] * legCount); row_pe[9] = '|'.join([expiry] * legCount)
                 row_pe[10] = '|'.join(['PE'] * legCount); row_pe[11] = '|'.join(map(str, pe_prices))
-                row_pe[12] = export_ratio_str  # Ratio with '|'
+                row_pe[12] = export_ratio_str
                 row_pe[13] = buySellStr; row_pe[24] = str(gap)
                 row_pe[16] = adv_bsoq; row_pe[17] = adv_bqty
-                row_pe[18] = str(int(float(adv_bprice)) * 100) if adv_bprice != '0' else '0'
-                row_pe[19] = str(int(float(adv_sprice)) * 100) if adv_sprice != '0' else '0'
+                row_pe[18] = adv_bprice_converted
+                row_pe[19] = adv_sprice_converted
                 row_pe[20] = adv_sqty; row_pe[21] = adv_ssoq
                 row_pe[15] = '1'; row_pe[25] = '10'; row_pe[26] = '2'; row_pe[27] = '2'; row_pe[29] = '5'
-                
-                # 7155 & PIPE mode settings:
                 row_pe[30] = '50' if mode == "IOC" else '200'
                 row_pe[31] = '2'; row_pe[32] = '1'
                 row_pe[33] = 'FALSE' if mode == "IOC" else 'TRUE'
