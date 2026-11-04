@@ -630,6 +630,15 @@
 
     <div class="container">
         <h1 class="welcome-heading">Welcome, <span>{{ username }}</span>!</h1>
+         <!-- Subscription Countdown Timer Badge -->
+<div style="display: inline-flex; align-items: center; gap: 10px; background: rgba(16, 185, 129, 0.15); border: 1.5px solid #10b981; padding: 8px 16px; border-radius: 12px; margin-bottom: 20px;">
+    <i class="fas fa-hourglass-half" style="color: #10b981;"></i>
+    <span style="color: #fff; font-size: 0.95rem; font-weight: 600;">
+        Subscription Active: 
+        <span style="color: #7adcf4; font-weight: 700;">{{ days_left }} Days, {{ hours_left }} Hours Left</span>
+        <span style="color: #94a3b8; font-size: 0.8rem; margin-left: 6px;">(Valid till {{ sub_date_str }})</span>
+    </span>
+</div>
         <div id="live-clock-container"></div>
         <div class="dashboard-grid">
             <section class="form-section">
