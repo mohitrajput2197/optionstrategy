@@ -92,8 +92,7 @@ def fromjson_filter(value):
 # --- Global Subscription Guard ---
 @app.before_request
 def check_user_subscription():
-    # 'index' yahan exempt hai taaki Landing Page open ho sake
-    exempt_endpoints = {'index', 'login', 'register', 'logout', 'static', 'admin.index'}
+    exempt_endpoints = {'login', 'register', 'logout', 'static', 'admin.index'}
     if request.endpoint and (request.endpoint in exempt_endpoints or request.endpoint.startswith('admin.')):
         return None
 
@@ -113,23 +112,11 @@ def check_user_subscription():
 # --- Main Routes ---
 @app.route('/')
 def index():
-    # Agar user pehle se logged-in hai toh direct dashboard bhejega, warna Landing Page dikhayega
-    if session.get("logged_in"):
-        return redirect('/dashboard')
-    return render_template('landing.html')
-
-@app.route('/dashboard')
-def dashboard():
-    # Ye purana index route hai jo dashboard render karta hai
-    if not session.get("logged_in"):
-        return redirect('/login')
+    if not session.get("logged_in"): return redirect('/login')
     return render_template('dashboard.html', username=session.get("username"), is_admin=session.get('is_admin', False))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if session.get("logged_in"):
-        return redirect('/dashboard')
-
     if request.method == 'POST':
         user = User.query.filter_by(username=request.form.get("username")).first()
         if user and check_password_hash(user.password, request.form.get("password")):
@@ -140,7 +127,7 @@ def login():
             session["logged_in"] = True
             session["username"] = user.username
             session["is_admin"] = user.is_admin
-            return redirect('/dashboard')
+            return redirect('/')
         else:
             flash('Invalid username or password.', 'error')
     return render_template('login.html')
@@ -155,6 +142,7 @@ def register():
             flash('That username is already taken.', 'error')
             return redirect('/register')
         
+        # New users get 30 days active subscription automatically
         new_user = User(
             username=request.form.get('username'),
             password=generate_password_hash(request.form.get('password')),
@@ -171,7 +159,7 @@ def register():
 def logout():
     session.clear()
     flash('You have been successfully logged out.', 'success')
-    return redirect("/")
+    return redirect("/login")
 
 # --- Feature Routes ---
 @app.route('/history')
