@@ -12,6 +12,7 @@ from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from wtforms.fields import PasswordField
 from flask_babel import Babel
+from sqlalchemy import text
 
 # --- Configuration ---
 load_dotenv()
@@ -71,7 +72,7 @@ class MyAdminIndexView(AdminIndexView):
 class SecureModelView(ModelView):
     column_list = ['username', 'is_admin', 'subscription_end']
     form_columns = ['username', 'password', 'is_admin', 'subscription_end']
-    form_overrides = { 'password': PasswordField }
+    form_overrides = {'password': PasswordField}
     def on_model_change(self, form, model, is_created):
         if form.password.data: model.password = generate_password_hash(form.password.data)
     def is_accessible(self): return session.get('logged_in') and session.get('is_admin')
@@ -82,8 +83,16 @@ admin.add_view(SecureModelView(User, db.session))
 admin.add_view(ModelView(SavedStrategy, db.session))
 admin.add_view(ModelView(TradeJournal, db.session))
 
+# --- Database Init & Auto-Migration for Postgres ---
 with app.app_context():
     db.create_all()
+    try:
+        with db.engine.connect() as conn:
+            conn.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS subscription_end TIMESTAMP;'))
+            conn.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS last_analysis_result TEXT;'))
+            conn.commit()
+    except Exception as e:
+        print(f"Column migration check note: {e}")
 
 @app.template_filter('fromjson')
 def fromjson_filter(value):
@@ -95,7 +104,6 @@ def fromjson_filter(value):
 # --- Global Subscription Guard (Crash-Proof) ---
 @app.before_request
 def check_user_subscription():
-    # In sabhi routes ko check se turant bypass karo taaki 500 error na bane
     exempt_endpoints = {'index', 'login', 'register', 'logout', 'static', 'admin.index'}
     if not request.endpoint or request.endpoint in exempt_endpoints or request.endpoint.startswith('admin.'):
         return None
