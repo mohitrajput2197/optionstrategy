@@ -2,6 +2,7 @@ import os
 import io
 import json
 import threading
+import requests
 import yfinance as yf
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -19,6 +20,23 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "a-default-secret-key-for-development-12345")
 INVITATION_CODE = os.environ.get("INVITATION_CODE", "BIJNOR24")
+
+GDRIVE_WEBHOOK_URL = os.environ.get("GDRIVE_WEBHOOK_URL")
+
+# --- Google Drive Webhook Helper (Solution 2: Lightweight Background Thread) ---
+def upload_to_drive_webhook(file_content_str, filename):
+    if not GDRIVE_WEBHOOK_URL:
+        print("Google Drive Webhook URL not configured. Set GDRIVE_WEBHOOK_URL in environment.")
+        return
+    try:
+        payload = {
+            "filename": filename,
+            "content": file_content_str
+        }
+        res = requests.post(GDRIVE_WEBHOOK_URL, json=payload, timeout=25)
+        print(f"Drive Webhook Response: {res.text}")
+    except Exception as e:
+        print(f"Error calling Drive Webhook: {e}")
 
 # --- Database Configuration ---
 database_url = os.environ.get('DATABASE_URL')
@@ -83,7 +101,7 @@ admin.add_view(SecureModelView(User, db.session))
 admin.add_view(ModelView(SavedStrategy, db.session))
 admin.add_view(ModelView(TradeJournal, db.session))
 
-# --- Database Init & Migration Guard (Prevents UndefinedColumn Crash) ---
+# --- Database Init & Migration Guard ---
 with app.app_context():
     db.create_all()
     try:
@@ -101,7 +119,7 @@ def fromjson_filter(value):
     except Exception:
         return {}
 
-# --- Global Subscription Guard (Crash-Proof) ---
+# --- Global Subscription Guard ---
 @app.before_request
 def check_user_subscription():
     exempt_endpoints = {'index', 'login', 'register', 'logout', 'static', 'admin.index'}
@@ -316,7 +334,7 @@ def ticker_data():
         except Exception as e: print(f"Error fetching {api_symbol} from yfinance: {e}")
     return jsonify({"data": ticker_results})
 
-# --- CSV GENERATE FUNCTION ---
+# --- CSV GENERATE FUNCTION (AUTO UPLOAD TO DRIVE VIA WEBHOOK) ---
 @app.route('/generate', methods=['POST'])
 def generate():
     if not session.get("logged_in"): return redirect("/login")
@@ -328,7 +346,7 @@ def generate():
         value = request.form.get(field_name)
         return value if value and value.strip() else str(default_value)
 
-    # Safe price parser: converts both whole numbers (360 -> 36000) and decimals (0.10 -> 10)
+    # Safe price parser (Convex): 360 -> 36000, 0.10 -> 10, 0.05 -> 5
     def parse_convex_price(price_str):
         if not price_str or price_str.strip() in ['0', '']:
             return '0'
@@ -363,7 +381,6 @@ def generate():
     adv_bsoq = get_str_from_form('bsoq', '0') if use_advanced_csv else '0'
     adv_bqty = get_str_from_form('bqty', '0') if use_advanced_csv else '0'
     
-    # 360 -> 36000, 0.10 -> 10, 0.05 -> 5
     adv_bprice_converted = parse_convex_price(request.form.get('bprice')) if use_advanced_csv else '0'
     adv_sprice_converted = parse_convex_price(request.form.get('sprice')) if use_advanced_csv else '0'
     
@@ -508,9 +525,23 @@ def generate():
                 break
 
     csv_content = '\n'.join(rows)
-    output = io.StringIO(csv_content)
-    output.seek(0)
-    return send_file(io.BytesIO(output.read().encode('utf-8')), mimetype='text/csv', as_attachment=True, download_name=fileName)
+
+    # --- AUTO UPLOAD TO GOOGLE DRIVE VIA WEBHOOK IN BACKGROUND ---
+    current_username = session.get('username', 'user')
+    drive_filename = f"{current_username}_{fileName}"
+    threading.Thread(
+        target=upload_to_drive_webhook,
+        args=(csv_content, drive_filename),
+        daemon=True
+    ).start()
+
+    # User ko direct instant file download send karein
+    return send_file(
+        io.BytesIO(csv_content.encode('utf-8')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=fileName
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
