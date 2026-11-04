@@ -92,8 +92,7 @@ def fromjson_filter(value):
 # --- Global Subscription Guard ---
 @app.before_request
 def check_user_subscription():
-    # 'index' yahan exempt hai taaki Landing Page open ho sake bina login ke
-    exempt_endpoints = {'index', 'login', 'register', 'logout', 'static', 'admin.index'}
+    exempt_endpoints = {'login', 'register', 'logout', 'static', 'admin.index'}
     if request.endpoint and (request.endpoint in exempt_endpoints or request.endpoint.startswith('admin.')):
         return None
 
@@ -113,22 +112,11 @@ def check_user_subscription():
 # --- Main Routes ---
 @app.route('/')
 def index():
-    # Agar user already logged in hai toh seede dashboard jayega, warna Landing Page load hoga
-    if session.get("logged_in"):
-        return redirect('/dashboard')
-    return render_template('landing.html')
-
-@app.route('/dashboard')
-def dashboard():
-    if not session.get("logged_in"): 
-        return redirect('/login')
+    if not session.get("logged_in"): return redirect('/login')
     return render_template('dashboard.html', username=session.get("username"), is_admin=session.get('is_admin', False))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if session.get("logged_in"):
-        return redirect('/dashboard')
-
     if request.method == 'POST':
         user = User.query.filter_by(username=request.form.get("username")).first()
         if user and check_password_hash(user.password, request.form.get("password")):
@@ -139,7 +127,7 @@ def login():
             session["logged_in"] = True
             session["username"] = user.username
             session["is_admin"] = user.is_admin
-            return redirect('/dashboard')
+            return redirect('/')
         else:
             flash('Invalid username or password.', 'error')
     return render_template('login.html')
@@ -171,7 +159,7 @@ def register():
 def logout():
     session.clear()
     flash('You have been successfully logged out.', 'success')
-    return redirect("/")
+    return redirect("/login")
 
 # --- Feature Routes ---
 @app.route('/history')
@@ -295,15 +283,12 @@ def generate():
         use_individual = (i < len(use_individual_gaps_list) and use_individual_gaps_list[i] == 'on')
         parsed_pairs.append({'ratio': ratio_str, 'gaps': gap_str, 'individual': use_individual})
 
-    script = request.form.get('script', 'NIFTY').upper()
-    expiry_raw = request.form.get('expiry', '')
-    firstStrikeCE = get_int_from_form('firstStrikeCE', 24100)
-    firstStrikePE = get_int_from_form('firstStrikePE', 25400)
-    strikeStep = get_int_from_form('strikeStep', 50)
+    script=request.form.get('script','NIFTY').upper(); expiry_raw=request.form.get('expiry','')
+    firstStrikeCE=get_int_from_form('firstStrikeCE',24100); firstStrikePE=get_int_from_form('firstStrikePE',25400)
+    strikeStep=get_int_from_form('strikeStep',50)
     totStrikes = get_int_from_form('totStrikes', 10)
-    buySellPattern = request.form.get('buySellPattern', 'S.B.S').upper()
-    fileName = request.form.get('fileName') or f"{script}-strategy.csv"
-    mode = request.form.get('mode', '8184')
+    buySellPattern=request.form.get('buySellPattern','S.B.S').upper()
+    fileName=request.form.get('fileName')or f"{script}-strategy.csv";mode=request.form.get('mode','8184')
 
     # --- Advanced Parameters Logic ---
     use_advanced_csv = request.form.get('use_advanced_csv') == 'on'
@@ -321,56 +306,33 @@ def generate():
     elif script == "SENSEX": lot_per_script = 20
     elif script == "MIDFNIFTY": lot_per_script = 120
     elif script == "FINNIFTY": lot_per_script = 60
-
     def formatExpiry(dateStr):
-        if not dateStr: return ""
-        try:
-            d = datetime.strptime(dateStr, '%Y-%m-%d')
-            months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
-            return f"{d.day:02d}-{months[d.month-1]}-{d.year}"
-        except Exception:
-            return ""
-
-    def getStgCode(ratioStr, mode_val, script_name):
-        count = len(ratioStr.split('.'))
-        if mode_val == "IOC":
-            if count == 2: return 210
-            if count == 3: return 310
-            if count == 4: return 410
+        if not dateStr:return ""
+        try:d=datetime.strptime(dateStr,'%Y-%m-%d'); months=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]; return f"{d.day:02d}-{months[d.month-1]}-{d.year}"
+        except Exception:return ""
+    def getStgCode(ratioStr,mode,script):
+        count=len(ratioStr.split('.'));
+        if mode=="IOC":
+            if count==2:return 210
+            if count==3:return 310
+            if count==4:return 410
             return 210
-        if count == 2: return 10201
-        if count == 3: return 10301
-        if count == 4: return 10401
+        if count==2:return 10201
+        if count==3:return 10301
+        if count==4:return 10401
         return 10301
-
-    expiry = formatExpiry(expiry_raw)
+    expiry=formatExpiry(expiry_raw)
     headerLine = "#PID,cost,bcmp,scmp,flp,stgcode,script,lotsize,itype,expiry,otype,stkprice,ratio,buysell,pnAdd,pnMulti,bsoq,bqty,bprice,sprice,sqty,ssoq,btrQty,strQty,gap,ticksize,orderDepth,priceDepth,thshqty,allowedBiddth,allowedSlippage,tradeGear,shortflag,isBidding,marketOrderRetries,marketOrLimitOrder,isBestbid,unhedgedActionType,TERActionType,BidWaitingType,param2,param3,param4,param5,param6,param7,param01,param02,param03,param04,param05,param06,param07,param08,param09,param10,param11,param12,param13,param14,param15,param16,param17,param18,param19,param20,param21,param22,param23,param24,param25,param26,param27,param28,param29,param30,param31,param32,param33,param34,param35,param36,param3-7,param38,param39,param40,param301,param302,param303,param304,param305,param306,param307,param308,param309,param310,param311,param312,param313,param314,param315,param316,param317,param318,param319,param320,param321,param322,param323,param324,param325,param326,param327,param328,param329,param330,param331,param332,param333,param334,param335,param336,param337,param338,param339,param340"
-    headers = headerLine.split(",")
-    rows = [headerLine]
-    pid = 1
-    baseParts = buySellPattern.split('.')
-    baseCount = len(baseParts)
+    headers = headerLine.split(","); rows = [headerLine]; pid = 1; baseParts = buySellPattern.split('.'); baseCount = len(baseParts)
 
     for pair in parsed_pairs:
-        ratio_str = pair['ratio']
-        gap_str = pair['gaps']
-        use_individual = pair['individual']
-        if not ratio_str.strip() or not gap_str.strip(): 
-            continue
-
-        # Mode PIPE ke liye ratio delimiter '.' se '|' replace hota hai:
-        if mode == "PIPE":
-            export_ratio_str = ratio_str.strip().replace('.', '|')
-        else:
-            export_ratio_str = ratio_str.strip()
+        ratio_str = pair['ratio']; gap_str = pair['gaps']; use_individual = pair['individual']
+        if not ratio_str.strip() or not gap_str.strip(): continue
 
         all_gaps_to_iterate = [int(g.strip()) for g in gap_str.split(',') if g.strip().isdigit()]
-        if not all_gaps_to_iterate: 
-            continue
+        if not all_gaps_to_iterate: continue
 
-        legCount = len(ratio_str.split('.'))
-        stgCode = getStgCode(ratio_str, mode, script)
-        current_lotSize = "|".join([str(lot_per_script)] * legCount) if mode in ["7155", "IOC"] else str(lot_per_script)
+        legCount = len(ratio_str.split('.')); stgCode = getStgCode(ratio_str, mode, script); current_lotSize = "|".join([str(lot_per_script)] * legCount) if mode in ["7155", "IOC"] else str(lot_per_script)
         buySellStr = '.'.join([baseParts[i % baseCount] for i in range(legCount)])
 
         for gap in all_gaps_to_iterate:
@@ -381,32 +343,13 @@ def generate():
                     ce_prices = [current_ce_strike]
                     for j in range(legCount - 1):
                         gap_to_add = leg_gaps[j] if j < len(leg_gaps) else leg_gaps[-1]
-                        current_ce_strike += gap_to_add
-                        ce_prices.append(current_ce_strike)
+                        current_ce_strike += gap_to_add; ce_prices.append(current_ce_strike)
                 else:
                     ce_prices = [firstStrikeCE + i * strikeStep + j * gap for j in range(legCount)]
 
-                row_ce = ['0'] * len(headers)
-                row_ce[0] = str(pid); pid += 1
-                row_ce[5] = str(stgCode); row_ce[6] = csv_script; row_ce[7] = current_lotSize
-                row_ce[8] = '-'.join(['OPTIDX'] * legCount); row_ce[9] = '|'.join([expiry] * legCount)
-                row_ce[10] = '|'.join(['CE'] * legCount); row_ce[11] = '|'.join(map(str, ce_prices))
-                row_ce[12] = export_ratio_str
-                row_ce[13] = buySellStr; row_ce[24] = str(gap)
-                row_ce[16] = adv_bsoq; row_ce[17] = adv_bqty
-                row_ce[18] = str(int(float(adv_bprice)) * 100) if adv_bprice != '0' else '0'
-                row_ce[19] = str(int(float(adv_sprice)) * 100) if adv_sprice != '0' else '0'
-                row_ce[20] = adv_sqty; row_ce[21] = adv_ssoq
-                row_ce[15] = '1'; row_ce[25] = '10'; row_ce[26] = '2'; row_ce[27] = '2'; row_ce[29] = '5'
-                row_ce[30] = '50' if mode == "IOC" else '200'
-                row_ce[31] = '2'; row_ce[32] = '1'
-                row_ce[33] = 'FALSE' if mode == "IOC" else 'TRUE'
-                row_ce[34] = '5'; row_ce[37] = '2'; row_ce[38] = '1'; row_ce[39] = '500'; row_ce[46] = '60'
-                row_ce[47] = '50' if mode == "IOC" else '800'
-                row_ce[50] = '100'; row_ce[51] = '200'; row_ce[52] = '2575'; row_ce[53] = '60'; row_ce[54] = '100'
-                row_ce[55] = '200'; row_ce[56] = '100'; row_ce[57] = '100'; row_ce[58] = '10'; row_ce[60] = '1'
-                row_ce[64] = '1999'; row_ce[66] = '30'; row_ce[68] = '10'; row_ce[86] = '101'
-                row_ce[28] = '80' if mode == "IOC" else '0'
+                row_ce = ['0'] * len(headers); row_ce[0] = str(pid); pid += 1; row_ce[5]=str(stgCode); row_ce[6]=csv_script; row_ce[7]=current_lotSize; row_ce[8]='-'.join(['OPTIDX']*legCount); row_ce[9]='|'.join([expiry]*legCount); row_ce[10]='|'.join(['CE']*legCount); row_ce[11]='|'.join(map(str, ce_prices)); row_ce[12]=ratio_str; row_ce[13]=buySellStr; row_ce[24]=str(gap)
+                row_ce[16]=adv_bsoq; row_ce[17]=adv_bqty; row_ce[18]=str(int(float(adv_bprice)) * 100) if adv_bprice != '0' else '0'; row_ce[19]=str(int(float(adv_sprice)) * 100) if adv_sprice != '0' else '0'; row_ce[20]=adv_sqty; row_ce[21]=adv_ssoq
+                row_ce[15]='1'; row_ce[25]='10'; row_ce[26]='2'; row_ce[27]='2'; row_ce[29]='5'; row_ce[30]='50' if mode=="IOC" else '200'; row_ce[31]='2'; row_ce[32]='1'; row_ce[33]='FALSE' if mode=="IOC" else 'TRUE'; row_ce[34]='5'; row_ce[37]='2'; row_ce[38]='1'; row_ce[39]='500'; row_ce[46]='60'; row_ce[47]='50' if mode=="IOC" else '800'; row_ce[50]='100'; row_ce[51]='200'; row_ce[52]='2575'; row_ce[53]='60'; row_ce[54]='100'; row_ce[55]='200'; row_ce[56]='100'; row_ce[57]='100'; row_ce[58]='10'; row_ce[60]='1'; row_ce[64]='1999'; row_ce[66]='30'; row_ce[68]='10'; row_ce[86]='101'; row_ce[28]='80' if mode=="IOC" else '0'
                 rows.append(','.join(row_ce))
 
             for i in range(totStrikes):
@@ -416,40 +359,20 @@ def generate():
                     pe_prices = [current_pe_strike]
                     for j in range(legCount - 1):
                         gap_to_subtract = leg_gaps[j] if j < len(leg_gaps) else leg_gaps[-1]
-                        current_pe_strike -= gap_to_subtract
-                        pe_prices.append(current_pe_strike)
+                        current_pe_strike -= gap_to_subtract; pe_prices.append(current_pe_strike)
                 else:
                     pe_prices = [firstStrikePE - i * strikeStep - j * gap for j in range(legCount)]
 
-                row_pe = ['0'] * len(headers)
-                row_pe[0] = str(pid); pid += 1
-                row_pe[5] = str(stgCode); row_pe[6] = csv_script; row_pe[7] = current_lotSize
-                row_pe[8] = '-'.join(['OPTIDX'] * legCount); row_pe[9] = '|'.join([expiry] * legCount)
-                row_pe[10] = '|'.join(['PE'] * legCount); row_pe[11] = '|'.join(map(str, pe_prices))
-                row_pe[12] = export_ratio_str
-                row_pe[13] = buySellStr; row_pe[24] = str(gap)
-                row_pe[16] = adv_bsoq; row_pe[17] = adv_bqty
-                row_pe[18] = str(int(float(adv_bprice)) * 100) if adv_bprice != '0' else '0'
-                row_pe[19] = str(int(float(adv_sprice)) * 100) if adv_sprice != '0' else '0'
-                row_pe[20] = adv_sqty; row_pe[21] = adv_ssoq
-                row_pe[15] = '1'; row_pe[25] = '10'; row_pe[26] = '2'; row_pe[27] = '2'; row_pe[29] = '5'
-                row_pe[30] = '50' if mode == "IOC" else '200'
-                row_pe[31] = '2'; row_pe[32] = '1'
-                row_pe[33] = 'FALSE' if mode == "IOC" else 'TRUE'
-                row_pe[34] = '5'; row_pe[37] = '2'; row_pe[38] = '1'; row_pe[39] = '500'; row_pe[46] = '60'
-                row_pe[47] = '50' if mode == "IOC" else '800'
-                row_pe[50] = '100'; row_pe[51] = '200'; row_pe[52] = '2575'; row_pe[53] = '60'; row_pe[54] = '100'
-                row_pe[55] = '200'; row_pe[56] = '100'; row_pe[57] = '100'; row_pe[58] = '10'; row_pe[60] = '1'
-                row_pe[64] = '1999'; row_pe[66] = '30'; row_pe[68] = '10'; row_pe[86] = '101'
-                row_pe[28] = '80' if mode == "IOC" else '0'
+                row_pe = ['0'] * len(headers); row_pe[0] = str(pid); pid += 1; row_pe[5]=str(stgCode); row_pe[6]=csv_script; row_pe[7]=current_lotSize; row_pe[8]='-'.join(['OPTIDX']*legCount); row_pe[9]='|'.join([expiry]*legCount); row_pe[10]='|'.join(['PE']*legCount); row_pe[11]='|'.join(map(str, pe_prices)); row_pe[12]=ratio_str; row_pe[13]=buySellStr; row_pe[24]=str(gap)
+                row_pe[16]=adv_bsoq; row_pe[17]=adv_bqty; row_pe[18]=str(int(float(adv_bprice)) * 100) if adv_bprice != '0' else '0'; row_pe[19]=str(int(float(adv_sprice)) * 100) if adv_sprice != '0' else '0'; row_pe[20]=adv_sqty; row_pe[21]=adv_ssoq
+                row_pe[15]='1'; row_pe[25]='10'; row_pe[26]='2'; row_pe[27]='2'; row_pe[29]='5'; row_pe[30]='50' if mode=="IOC" else '200'; row_pe[31]='2'; row_pe[32]='1'; row_pe[33]='FALSE' if mode=="IOC" else 'TRUE'; row_pe[34]='5'; row_pe[37]='2'; row_pe[38]='1'; row_pe[39]='500'; row_pe[46]='60'; row_pe[47]='50' if mode=="IOC" else '800'; row_pe[50]='100'; row_pe[51]='200'; row_pe[52]='2575'; row_pe[53]='60'; row_pe[54]='100'; row_pe[55]='200'; row_pe[56]='100'; row_pe[57]='100'; row_pe[58]='10'; row_pe[60]='1'; row_pe[64]='1999'; row_pe[66]='30'; row_pe[68]='10'; row_pe[86]='101'; row_pe[28]='80' if mode=="IOC" else '0'
                 rows.append(','.join(row_pe))
 
             if use_individual:
                 break
 
     csv_content = '\n'.join(rows)
-    output = io.StringIO(csv_content)
-    output.seek(0)
+    output = io.StringIO(csv_content); output.seek(0)
     return send_file(io.BytesIO(output.read().encode('utf-8')), mimetype='text/csv', as_attachment=True, download_name=fileName)
 
 if __name__ == '__main__':
