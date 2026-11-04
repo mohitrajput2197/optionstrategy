@@ -83,7 +83,7 @@ admin.add_view(SecureModelView(User, db.session))
 admin.add_view(ModelView(SavedStrategy, db.session))
 admin.add_view(ModelView(TradeJournal, db.session))
 
-# --- Database Init & Auto-Migration for Postgres ---
+# --- Database Init & Migration Guard (Prevents UndefinedColumn Crash) ---
 with app.app_context():
     db.create_all()
     try:
@@ -139,7 +139,32 @@ def index():
 def dashboard():
     if not session.get("logged_in"): 
         return redirect('/login')
-    return render_template('dashboard.html', username=session.get("username"), is_admin=session.get('is_admin', False))
+    
+    # Client ke 30 din ke timer calculation ke liye
+    days_left = 0
+    hours_left = 0
+    sub_date_str = "N/A"
+    
+    try:
+        user = User.query.filter_by(username=session.get('username')).first()
+        if user and user.subscription_end:
+            now = datetime.utcnow()
+            remaining = user.subscription_end - now
+            if remaining.total_seconds() > 0:
+                days_left = remaining.days
+                hours_left = int(remaining.seconds // 3600)
+                sub_date_str = user.subscription_end.strftime("%d-%b-%Y")
+    except Exception as e:
+        print(f"Timer calculation error: {e}")
+
+    return render_template(
+        'dashboard.html', 
+        username=session.get("username"), 
+        is_admin=session.get('is_admin', False),
+        days_left=days_left,
+        hours_left=hours_left,
+        sub_date_str=sub_date_str
+    )
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -172,6 +197,7 @@ def register():
             flash('That username is already taken.', 'error')
             return redirect('/register')
         
+        # Naye user ko register hote hi auto 30 days subscription milti hai
         new_user = User(
             username=request.form.get('username'),
             password=generate_password_hash(request.form.get('password')),
