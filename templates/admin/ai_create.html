@@ -1,0 +1,16 @@
+{% extends 'admin/model/create.html' %}
+{% block body %}
+<div class="ai-page-head">
+  <div class="ai-page-text">
+    <div class="ai-page-kicker"><span class="ai-live"></span>Admin &middot; New {{ admin_view.name }}</div>
+    <h3>Create {{ admin_view.name }}</h3>
+    {% if admin_view.name == 'User' %}
+    <p>Set a username and a strong password. Tick Admin only for a co-admin. Set Subscription End &mdash; the user's access stops automatically after that date.</p>
+    {% else %}
+    <p>Fill the details below and press Save to create the record.</p>
+    {% endif %}
+  </div>
+  <span class="ai-page-icon glyphicon glyphicon-plus-sign"></span>
+</div>
+{{ super() }}
+{% endblock %}

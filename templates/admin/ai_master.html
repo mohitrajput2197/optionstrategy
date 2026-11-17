@@ -1,0 +1,14 @@
+{% extends 'admin/base.html' %}
+{% block brand %}
+<a class="navbar-brand ai-brand" href="{{ admin_view.admin.url }}"><span class="ai-brand-mark">&#9670;</span> Anay Investments <span class="ai-brand-tag">ADMIN</span></a>
+{% endblock %}
+{% block access_control %}
+<ul class="nav navbar-nav navbar-right">
+  <li><a href="/">&#8592; Main Site</a></li>
+  <li><a href="/logout">Logout</a></li>
+</ul>
+{% endblock %}
+{% block tail %}
+{{ super() }}
+<div class="ai-footer">Anay Investments &middot; Admin Panel &middot; Option Strategy Portal</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'admin/model/list.html' %}
+{% block body %}
+<div class="ai-page-head">
+  <div class="ai-page-text">
+    <div class="ai-page-kicker"><span class="ai-live"></span>Admin &middot; Journal</div>
+    <h3>Trade Journal</h3>
+    <p>Every journal entry with its final P&amp;L &mdash; green is profit, red is loss. Newest entries first; search inside notes.</p>
+  </div>
+  <span class="ai-page-icon glyphicon glyphicon-book"></span>
+</div>
+{{ super() }}
+{% endblock %}

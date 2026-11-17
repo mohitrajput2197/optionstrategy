@@ -1,0 +1,51 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<div class="ai-hero">
+  <div class="ai-live-label"><span class="ai-live"></span>Live overview</div>
+  <h2>Welcome to the Control Panel</h2>
+  <p>Anay Investments — Option Strategy Portal admin home. Live counts below; move your mouse over a card for the 3D tilt, click to open that list.</p>
+</div>
+
+<div class="row ai-cards">
+  <div class="col-sm-6 col-md-3">
+    <a class="ai-card ai-delay-1" href="user/">
+      <span class="ai-icon glyphicon glyphicon-user"></span>
+      <div class="ai-num" data-count="{{ stats.users }}">0</div>
+      <div class="ai-label">Total Users</div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-md-3">
+    <a class="ai-card ai-delay-2" href="user/">
+      <span class="ai-icon glyphicon glyphicon-time"></span>
+      <div class="ai-num" data-count="{{ stats.active_subs }}">0</div>
+      <div class="ai-label">Active Subscriptions</div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-md-3">
+    <a class="ai-card ai-delay-3" href="savedstrategy/">
+      <span class="ai-icon glyphicon glyphicon-stats"></span>
+      <div class="ai-num" data-count="{{ stats.strategies }}">0</div>
+      <div class="ai-label">Saved Strategies</div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-md-3">
+    <a class="ai-card ai-delay-4" href="tradejournal/">
+      <span class="ai-icon glyphicon glyphicon-book"></span>
+      <div class="ai-num" data-count="{{ stats.journals }}">0</div>
+      <div class="ai-label">Journal Entries</div>
+    </a>
+  </div>
+</div>
+
+<div class="ai-quick-row">
+  <a class="ai-quick" href="user/new/"><span class="glyphicon glyphicon-plus"></span> New User</a>
+  <a class="ai-quick" href="user/"><span class="glyphicon glyphicon-user"></span> All Users</a>
+  <a class="ai-quick" href="savedstrategy/"><span class="glyphicon glyphicon-stats"></span> Strategies</a>
+  <a class="ai-quick" href="tradejournal/"><span class="glyphicon glyphicon-book"></span> Journal</a>
+</div>
+
+<p class="text-muted" style="margin-top:6px;">
+  Tip: To renew a user, open <strong>Users</strong>, edit the user and extend <strong>Subscription End</strong>.
+  Expired users are blocked at login automatically; admins never expire.
+</p>
+{% endblock %}

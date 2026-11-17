@@ -1,5 +1,6 @@
 import os
 import io
+import secrets
 import json
 import threading
 import requests
@@ -7,10 +8,12 @@ import yfinance as yf
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, send_file, session, redirect, flash, jsonify
+from markupsafe import Markup
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_admin import Admin, AdminIndexView
+from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
+from flask_admin.actions import action
 from wtforms.fields import PasswordField
 from flask_babel import Babel
 from sqlalchemy import text
@@ -18,8 +21,8 @@ from sqlalchemy import text
 # --- Configuration ---
 load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "a-default-secret-key-for-development-12345")
-INVITATION_CODE = os.environ.get("INVITATION_CODE", "BIJNOR24")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", 'dev-only-change-me')
+INVITATION_CODE = os.environ.get("INVITATION_CODE", 'dev-only-invitation-code')
 
 GDRIVE_WEBHOOK_URL = os.environ.get("GDRIVE_WEBHOOK_URL")
 
@@ -61,6 +64,9 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     subscription_end = db.Column(db.DateTime, nullable=True, default=get_default_subscription)
     last_analysis_result = db.Column(db.Text)
+    device_token = db.Column(db.String(64), nullable=True)
+    last_login_at = db.Column(db.DateTime, nullable=True)
+    last_login_ip = db.Column(db.String(64), nullable=True)
 
 class SavedStrategy(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -82,24 +88,160 @@ class TradeJournal(db.Model):
 
 # --- Admin Panel ---
 class MyAdminIndexView(AdminIndexView):
+    extra_css = ['/static/admin-anim.css']
+    extra_js = ['/static/admin-anim.js']
     def is_accessible(self): return session.get('logged_in') and session.get('is_admin')
     def inaccessible_callback(self, name, **kwargs):
         flash('You do not have permission to access the Admin Panel.', 'error')
         return redirect('/login')
+    @expose('/')
+    def index(self):
+        now = datetime.utcnow()
+        stats = {
+            'users': User.query.count(),
+            'active_subs': User.query.filter(User.subscription_end.isnot(None), User.subscription_end >= now).count(),
+            'strategies': SavedStrategy.query.count(),
+            'journals': TradeJournal.query.count(),
+        }
+        return self.render('admin/index.html', stats=stats)
+
+def _subscription_badge(view, context, model, name):
+    if model.is_admin:
+        return Markup('<span class="ai-badge ai-badge-gold">Admin &middot; no expiry</span>')
+    end = model.subscription_end
+    if not end:
+        return Markup('<span class="ai-badge ai-badge-red">No date set</span>')
+    if end >= datetime.utcnow():
+        return Markup('<span class="ai-badge ai-badge-green">Active &middot; till ' + end.strftime('%d %b %Y') + '</span>')
+    return Markup('<span class="ai-badge ai-badge-red">Expired &middot; ' + end.strftime('%d %b %Y') + '</span>')
+
+def _admin_badge(view, context, model, name):
+    if model.is_admin:
+        return Markup('<span class="ai-badge ai-badge-gold">Admin</span>')
+    return Markup('<span class="ai-badge ai-badge-grey">User</span>')
+
+# --- Single-Device Binding ---
+def _client_ip():
+    fwd = request.headers.get('X-Forwarded-For', '')
+    if fwd:
+        return fwd.split(',')[0].strip()
+    return request.remote_addr or ''
+
+def _bind_device(user):
+    token = secrets.token_hex(16)
+    user.device_token = token
+    user.last_login_at = datetime.utcnow()
+    user.last_login_ip = _client_ip()
+    db.session.commit()
+    session['device_token'] = token
+
+def _device_guard(user):
+    """None if this session is the bound device, else the sign-out response."""
+    token = session.get('device_token')
+    if token is None:
+        # Session predates device binding: adopt the stored binding (or create one)
+        if user.device_token:
+            session['device_token'] = user.device_token
+        else:
+            _bind_device(user)
+        return None
+    if user.device_token is None or token != user.device_token:
+        session.clear()
+        flash('This account has been signed in on another device, so this device was signed out. If this was not you, please contact the admin.', 'error')
+        if request.is_json:
+            return jsonify({"status": "error", "message": "Signed in on another device."}), 403
+        return redirect('/login')
+    return None
+
+def _device_badge(view, context, model, name):
+    if model.is_admin:
+        return Markup('<span class="ai-badge ai-badge-gold">Admin &middot; exempt</span>')
+    if model.device_token:
+        return Markup('<span class="ai-badge ai-badge-green">Bound to 1 device</span>')
+    return Markup('<span class="ai-badge ai-badge-grey">Not signed in</span>')
 
 class SecureModelView(ModelView):
-    column_list = ['username', 'is_admin', 'subscription_end']
+    extra_css = ['/static/admin-anim.css']
+    extra_js = ['/static/admin-anim.js']
+    list_template = 'admin/user_list.html'
+    create_template = 'admin/ai_create.html'
+    edit_template = 'admin/ai_edit.html'
+    details_template = 'admin/ai_details.html'
+    can_view_details = True
+    column_list = ['username', 'is_admin', 'subscription_end', 'device_token', 'last_login_at', 'last_login_ip']
+    column_labels = {'username': 'Username', 'is_admin': 'Role', 'subscription_end': 'Subscription Status', 'device_token': 'Device', 'last_login_at': 'Last Login', 'last_login_ip': 'Last IP'}
+    column_searchable_list = ['username']
+    column_filters = ['is_admin']
+    column_sortable_list = ['username', 'subscription_end']
+    column_formatters = {'is_admin': _admin_badge, 'subscription_end': _subscription_badge, 'device_token': _device_badge}
     form_columns = ['username', 'password', 'is_admin', 'subscription_end']
     form_overrides = {'password': PasswordField}
+
+    @action('reset_device', 'Reset Device', 'Reset the device binding for the selected user(s)? They will be signed out on their current device, and their next sign-in will bind the new device.')
+    def action_reset_device(self, ids):
+        count = 0
+        for uid in ids:
+            u = User.query.get(uid)
+            if u and not u.is_admin and u.device_token:
+                u.device_token = None
+                count += 1
+        db.session.commit()
+        flash(f'Device binding reset for {count} user(s). They can now sign in on a new device.', 'success')
     def on_model_change(self, form, model, is_created):
         if form.password.data: model.password = generate_password_hash(form.password.data)
     def is_accessible(self): return session.get('logged_in') and session.get('is_admin')
     def inaccessible_callback(self, name, **kwargs): return redirect('/login')
 
-admin = Admin(app, name='Control Panel', template_mode='bootstrap3', index_view=MyAdminIndexView())
+class AdminOnlyModelView(ModelView):
+    extra_css = ['/static/admin-anim.css']
+    extra_js = ['/static/admin-anim.js']
+    create_template = 'admin/ai_create.html'
+    edit_template = 'admin/ai_edit.html'
+    details_template = 'admin/ai_details.html'
+    can_view_details = True
+    def is_accessible(self): return session.get('logged_in') and session.get('is_admin')
+    def inaccessible_callback(self, name, **kwargs): return redirect('/login')
+
+def _pnl_badge(view, context, model, name):
+    pnl = model.final_pnl
+    if pnl is None:
+        return Markup('<span class="ai-badge ai-badge-grey">Not recorded</span>')
+    if pnl > 0:
+        return Markup('<span class="ai-badge ai-badge-green">+&#8377;' + format(pnl, ',.2f') + '</span>')
+    if pnl < 0:
+        return Markup('<span class="ai-badge ai-badge-red">&#8722;&#8377;' + format(abs(pnl), ',.2f') + '</span>')
+    return Markup('<span class="ai-badge ai-badge-grey">&#8377;0.00</span>')
+
+def _entry_date(view, context, model, name):
+    return model.entry_date.strftime('%d %b %Y') if model.entry_date else '—'
+
+class TradeJournalView(AdminOnlyModelView):
+    list_template = 'admin/journal_list.html'
+    column_list = ['user', 'entry_date', 'final_pnl', 'notes']
+    column_labels = {'user': 'User', 'entry_date': 'Entry Date', 'final_pnl': 'Final P&L', 'notes': 'Notes'}
+    column_searchable_list = ['notes']
+    column_sortable_list = ['entry_date', 'final_pnl']
+    column_default_sort = ('entry_date', True)
+    column_formatters = {
+        'user': lambda v, c, m, p: m.user.username if m.user else '—',
+        'entry_date': _entry_date,
+        'final_pnl': _pnl_badge,
+    }
+
+class SavedStrategyView(AdminOnlyModelView):
+    list_template = 'admin/strategy_list.html'
+    column_list = ['strategy_name', 'user', 'script', 'expiry', 'mode', 'created_at']
+    column_labels = {'strategy_name': 'Strategy', 'user': 'User', 'script': 'Script', 'expiry': 'Expiry', 'mode': 'Mode', 'created_at': 'Saved On'}
+    column_searchable_list = ['strategy_name', 'script']
+    column_filters = ['script', 'mode']
+    column_sortable_list = ['strategy_name', 'script', 'created_at']
+    column_default_sort = ('created_at', True)
+    column_formatters = {'user': lambda v, c, m, p: m.user.username if m.user else '—'}
+
+admin = Admin(app, name='Anay Investments', template_mode='bootstrap3', base_template='admin/ai_master.html', index_view=MyAdminIndexView())
 admin.add_view(SecureModelView(User, db.session))
-admin.add_view(ModelView(SavedStrategy, db.session))
-admin.add_view(ModelView(TradeJournal, db.session))
+admin.add_view(SavedStrategyView(SavedStrategy, db.session))
+admin.add_view(TradeJournalView(TradeJournal, db.session))
 
 # --- Database Init & Migration Guard ---
 with app.app_context():
@@ -108,6 +250,9 @@ with app.app_context():
         with db.engine.connect() as conn:
             conn.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS subscription_end TIMESTAMP;'))
             conn.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS last_analysis_result TEXT;'))
+            conn.execute(text('ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS device_token VARCHAR(64);'))
+            conn.execute(text('ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP;'))
+            conn.execute(text('ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS last_login_ip VARCHAR(64);'))
             conn.commit()
     except Exception as e:
         print(f"Column migration check note: {e}")
@@ -139,6 +284,10 @@ def check_user_subscription():
                 if request.is_json:
                     return jsonify({"status": "error", "message": "Subscription expired."}), 403
                 return redirect('/login')
+
+            device_response = _device_guard(user)
+            if device_response is not None:
+                return device_response
         except Exception as e:
             print(f"Subscription Guard Error: {e}")
             return None
@@ -196,6 +345,8 @@ def login():
                 session["logged_in"] = True
                 session["username"] = user.username
                 session["is_admin"] = user.is_admin
+                if not user.is_admin:
+                    _bind_device(user)
                 return redirect('/dashboard')
             else:
                 flash('Invalid username or password.', 'error')

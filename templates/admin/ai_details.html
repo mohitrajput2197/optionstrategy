@@ -1,0 +1,12 @@
+{% extends 'admin/model/details.html' %}
+{% block body %}
+<div class="ai-page-head">
+  <div class="ai-page-text">
+    <div class="ai-page-kicker"><span class="ai-live"></span>Admin &middot; View {{ admin_view.name }}</div>
+    <h3>View {{ admin_view.name }}</h3>
+    <p>Full record details below. Use Edit from the list page if anything needs to change.</p>
+  </div>
+  <span class="ai-page-icon glyphicon glyphicon-eye-open"></span>
+</div>
+{{ super() }}
+{% endblock %}

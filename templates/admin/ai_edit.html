@@ -1,0 +1,16 @@
+{% extends 'admin/model/edit.html' %}
+{% block body %}
+<div class="ai-page-head">
+  <div class="ai-page-text">
+    <div class="ai-page-kicker"><span class="ai-live"></span>Admin &middot; Edit {{ admin_view.name }}</div>
+    <h3>Edit {{ admin_view.name }}</h3>
+    {% if admin_view.name == 'User' %}
+    <p>Leave Password blank to keep the current password. Extend Subscription End to renew this user's access.</p>
+    {% else %}
+    <p>Update the details below and press Save to apply the changes.</p>
+    {% endif %}
+  </div>
+  <span class="ai-page-icon glyphicon glyphicon-pencil"></span>
+</div>
+{{ super() }}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'admin/model/list.html' %}
+{% block body %}
+<div class="ai-page-head">
+  <div class="ai-page-text">
+    <div class="ai-page-kicker"><span class="ai-live"></span>Admin &middot; Accounts</div>
+    <h3>Users</h3>
+    <p>Every account's role, subscription status and device binding at a glance. To renew a user, open Edit and extend Subscription End. To free a user's device (new phone or laptop), select them and use the Reset Device action.</p>
+  </div>
+  <span class="ai-page-icon glyphicon glyphicon-user"></span>
+</div>
+{{ super() }}
+{% endblock %}
